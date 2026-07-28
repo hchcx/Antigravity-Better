@@ -1,0 +1,1686 @@
+<!-- Copyright (C) Microsoft Corporation. All rights reserved. -->
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="Content-Security-Policy" content="
+				default-src
+					'none'
+				;
+				img-src
+					'self'
+					data:
+					blob:
+					vscode-remote-resource:
+					vscode-managed-remote-resource:
+					https:
+				;
+				media-src
+					'self'
+					data:
+					https://127.0.0.1:*
+					blob:
+					https://www.gstatic.com/
+				;
+				frame-src
+					'self'
+					vscode-webview:
+					data:
+				;
+				script-src
+					'self'
+					'unsafe-eval'
+					'unsafe-inline'
+					blob:
+				;
+				style-src
+					'self'
+					'unsafe-inline'
+					https://fonts.googleapis.com
+				;
+				connect-src
+					'self'
+					data:
+					http://127.0.0.1:*
+					http://jetski-unleash.corp.goog/
+					http://antigravity-unleash.goog/
+					https:
+					ws:
+				;
+				font-src
+					'self'
+					vscode-remote-resource:
+					vscode-managed-remote-resource:
+					https://*.vscode-unpkg.net
+					https://fonts.gstatic.com
+				;
+				require-trusted-types-for
+					'script'
+				;
+				trusted-types
+					amdLoader
+					cellRendererEditorText
+					collapsedCellPreview
+					defaultWorkerFactory
+					diffEditorWidget
+					diffReview
+					domLineBreaksComputer
+					dompurify
+					dompurifyMermaid
+					editorGhostText
+					editorViewLayer
+					mermaid
+					notebookRenderer
+					stickyScrollViewLayer
+					tokenizeToString
+					notebookChatEditController
+					richScreenReaderContent
+					renderCodeBlock
+					antigravityBetter
+					google#safe
+				;
+		" />
+
+	<!-- Workbench CSS -->
+	<link rel="stylesheet" href="../../../workbench/workbench.desktop.main.css">
+
+	<style>
+		/* ===== Antigravity Better v0.2.10 ===== */
+		:root {
+			--color-user-message: #60A5FA;
+			--color-ai-response: #E0E0E0;
+			--color-code-block: #A78BFA;
+			--color-action-status: #4ADE80;
+			--color-thinking: #9CA3AF;
+			--fontsize-user-message: 14px;
+			--fontsize-ai-response: 14px;
+			--fontsize-code-block: 13px;
+			--fontsize-action-status: 13px;
+			--fontsize-thinking: 13px;
+			--bg-modal: #1e1e1e;
+			--border-color: #3c3c3c;
+			--accent-color: #667eea;
+			--text-main: #fff;
+			--text-sub: #999;
+		}
+
+		/* 悬浮按钮 (absolute in side-panel) */
+		#ab-settings-btn { position:absolute; right:10px; top:66%; transform:translateY(-50%); width:36px; height:36px; background:rgba(255,255,255,.08); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border:1px solid rgba(255,255,255,.12); border-radius:50%; cursor:pointer; box-shadow:0 2px 12px rgba(0,0,0,.2); z-index:9999; transition:all .35s cubic-bezier(.34,1.56,.64,1); }
+		#ab-settings-btn:hover { background:rgba(102,126,234,.15); border-color:rgba(102,126,234,.4); box-shadow:0 0 20px rgba(102,126,234,.25),0 4px 16px rgba(0,0,0,.2); transform:translateY(-50%) scale(1.1); }
+		#ab-settings-btn svg { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:17px; height:17px; fill:rgba(255,255,255,.6); transition:all .4s ease; }
+		#ab-settings-btn:hover svg { fill:#a5b4fc; transform:translate(-50%,-50%) rotate(90deg); }
+
+		/* 遮罩层 (absolute in side-panel) */
+		#ab-overlay { position:absolute; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,.5); z-index:10000; display:none; opacity:0; transition:opacity .3s ease; align-items:center; justify-content:center; }
+		#ab-overlay.show { display:flex; }
+		#ab-overlay.visible { opacity:1; }
+
+		/* 弹窗 */
+		#ab-modal { background:var(--bg-modal); border-radius:12px; width:400px; max-width:90%; max-height:85%; display:flex; flex-direction:column; box-shadow:0 8px 32px rgba(0,0,0,.4); border:1px solid var(--border-color); transform:scale(.9); transition:transform .3s cubic-bezier(.34,1.56,.64,1); overflow:hidden; }
+		#ab-overlay.visible #ab-modal { transform:scale(1); }
+
+		/* Header */
+		.ab-header { padding:16px 20px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; align-items:flex-start; background:rgba(255,255,255,.02); }
+		.ab-header-left { display:flex; flex-direction:column; }
+		.ab-brand { color:var(--text-main); font-size:16px; font-weight:700; background:linear-gradient(90deg,#fff,#a5b4fc); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+		.ab-version { font-size:10px; color:var(--text-sub); background:rgba(255,255,255,.1); padding:2px 6px; border-radius:4px; margin-left:8px; font-weight:normal; -webkit-text-fill-color:var(--text-sub); }
+		.ab-brand-links { display:flex; gap:12px; margin-top:4px; }
+		.ab-brand-link { color:var(--text-sub); font-size:10px; text-decoration:none; transition:color .2s; }
+		.ab-brand-link:hover { color:var(--accent-color); }
+		.ab-header-right { display:flex; align-items:center; gap:12px; }
+		.ab-lang-switch { background:none; border:1px solid var(--border-color); color:var(--text-sub); font-size:11px; padding:4px 8px; border-radius:4px; cursor:pointer; transition:all .2s; }
+		.ab-lang-switch:hover { border-color:var(--text-main); color:var(--text-main); }
+		.ab-close { background:none; border:none; color:var(--text-sub); font-size:18px; cursor:pointer; padding:6px; width:32px; height:32px; line-height:1; transition:all .2s; border-radius:6px; display:flex; align-items:center; justify-content:center; }
+		.ab-close:hover { color:var(--text-main); background:rgba(255,255,255,.1); }
+
+		/* Tab 导航 */
+		.ab-tab-nav { display:flex; border-bottom:1px solid var(--border-color); padding:0 10px; background:rgba(0,0,0,.1); }
+		.ab-tab-btn { flex:1; background:none; border:none; color:var(--text-sub); padding:12px 12px; min-height:42px; font-size:13px; cursor:pointer; position:relative; transition:all .2s; box-sizing:border-box; outline:none; display:flex; align-items:center; justify-content:center; gap:4px; }
+		.ab-tab-btn:hover { color:var(--text-main); }
+		.ab-tab-btn.active { color:var(--accent-color); font-weight:600; }
+		.ab-tab-btn.active::after { content:''; position:absolute; bottom:-1px; left:0; width:100%; height:2px; background:var(--accent-color); }
+
+		/* Tab 内容 */
+		.ab-body { flex:1; overflow-y:auto; padding:0; }
+		.ab-tab-content { display:none; animation:abFadeIn .2s ease; }
+		.ab-tab-content.active { display:block; }
+		@keyframes abFadeIn { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+
+		/* 手风琴 */
+		.ab-accordion { border-bottom:1px solid var(--border-color); }
+		.ab-accordion-header { padding:14px 20px; background:rgba(255,255,255,.01); cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition:background .2s; }
+		.ab-accordion-header:hover { background:rgba(255,255,255,.03); }
+		.ab-accordion-title { font-size:13px; font-weight:600; color:var(--text-main); display:flex; align-items:center; gap:8px; }
+		.ab-accordion-icon { transition:transform .3s; }
+		.ab-accordion.expanded .ab-accordion-icon { transform:rotate(180deg); }
+		.ab-accordion-body { max-height:0; overflow:hidden; transition:max-height .3s cubic-bezier(0,1,0,1); background:rgba(0,0,0,.1); }
+		.ab-accordion.expanded .ab-accordion-body { max-height:1000px; transition:max-height .3s ease-in-out; }
+		.ab-accordion-inner { padding:16px 20px; }
+
+		/* 通用控件 */
+		.ab-main-toggle { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; background:rgba(102,126,234,.1); border:1px solid rgba(102,126,234,.2); border-radius:8px; margin-bottom:12px; }
+		.ab-main-toggle-label { color:var(--text-main); font-size:13px; font-weight:500; }
+		.ab-setting { display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,.05); }
+		.ab-setting:last-child { border-bottom:none; }
+		.ab-setting-left { display:flex; align-items:center; gap:10px; }
+		.ab-setting-icon { width:20px; color:var(--text-sub); }
+		.ab-setting-name { color:#ccc; font-size:13px; line-height:28px; }
+		.ab-setting-right { display:flex; align-items:center; gap:8px; }
+		.ab-setting-desc { font-size:11px; color:var(--text-sub); margin-bottom:12px; line-height:1.5; }
+
+		/* Toggle Switch */
+		.ab-toggle { position:relative; display:inline-block; width:32px; height:18px; flex-shrink:0; }
+		.ab-toggle input { display:none !important; }
+		.ab-toggle-slider { position:absolute; cursor:pointer; top:0;left:0;right:0;bottom:0; background-color:#3c3c3c; transition:.3s; border-radius:20px; }
+		.ab-toggle-slider:before { position:absolute; content:""; height:12px; width:12px; left:3px; bottom:3px; background-color:#fff; transition:.3s; border-radius:50%; }
+		.ab-toggle input:checked+.ab-toggle-slider { background:var(--accent-color); }
+		.ab-toggle input:checked+.ab-toggle-slider:before { transform:translateX(14px); }
+
+		/* Color/Select/FontSize Input */
+		.ab-color-input { width:24px; height:24px; border:1px solid var(--border-color); border-radius:4px; cursor:pointer; padding:0; background:none; }
+		.ab-color-input::-webkit-color-swatch-wrapper { padding:2px; }
+		.ab-color-input::-webkit-color-swatch { border-radius:2px; border:none; }
+		.ab-select-input { background:#2d2d2d !important; border:1px solid var(--border-color) !important; border-radius:6px !important; padding:0 8px !important; color:#ccc !important; font-size:12px !important; cursor:pointer; outline:none !important; min-width:110px; height:28px !important; line-height:28px !important; box-sizing:border-box; -webkit-appearance:menulist; appearance:menulist; }
+		.ab-select-input:focus { border-color:var(--accent-color) !important; outline:none !important; }
+		.ab-select-input option { background:#2d2d2d; color:#ccc; }
+		.ab-fontsize-input { width:60px !important; background:#2d2d2d !important; border:1px solid var(--border-color) !important; border-radius:6px !important; padding:2px 4px !important; color:#ccc !important; font-size:12px !important; text-align:center; outline:none !important; height:28px !important; box-sizing:border-box; }
+		.ab-fontsize-input:focus { border-color:var(--accent-color) !important; outline:none !important; }
+		.ab-fontsize-input::-webkit-inner-spin-button { opacity:0; height:24px; cursor:pointer; transition:opacity .2s; }
+		.ab-fontsize-input:focus::-webkit-inner-spin-button { opacity:1; }
+
+		/* 按钮组 */
+		.ab-btn-group { display:flex; gap:10px; margin-top:10px; }
+		.ab-btn { flex:1; padding:8px; border-radius:6px; border:none; cursor:pointer; font-size:12px; transition:all .2s; }
+		.ab-btn.primary { background:var(--accent-color); color:#fff; }
+		.ab-btn.primary:hover { filter:brightness(1.1); }
+		.ab-btn.secondary { background:rgba(255,255,255,.1); color:#ccc; border:1px solid var(--border-color); }
+		.ab-btn.secondary:hover { background:rgba(255,255,255,.15); }
+		.ab-save-status { font-size:11px; text-align:center; margin-top:8px; min-height:16px; color:#4ADE80; }
+
+		/* 同步按钮 */
+		.ab-sync-btn { background:rgba(102,126,234,.2); border:1px solid rgba(102,126,234,.3); color:var(--accent-color); font-size:11px; padding:3px 8px; border-radius:4px; cursor:pointer; transition:all .2s; white-space:nowrap; }
+		.ab-sync-btn:hover { background:rgba(102,126,234,.4); }
+
+		/* Pattern Grid (Auto Accept) */
+		.ab-pattern-grid { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
+		.ab-pattern-item { display:flex; align-items:center; gap:6px; padding:6px 10px; background:rgba(0,0,0,.3); border:1px solid var(--border-color); border-radius:6px; cursor:pointer; transition:all .2s; font-size:12px; color:#ccc; }
+		.ab-pattern-item:hover { background:rgba(255,255,255,.05); }
+		.ab-pattern-item.active { border-color:var(--accent-color); background:rgba(102,126,234,.15); color:var(--text-main); }
+		.ab-pattern-item input[type="checkbox"] { accent-color:var(--accent-color); width:14px; height:14px; cursor:pointer; outline:none !important; box-shadow:none !important; border:none !important; }
+
+		/* 统计面板 */
+		.ab-stats-panel { display:flex; justify-content:space-around; padding:12px; background:rgba(0,0,0,.2); border-radius:8px; margin-top:12px; }
+		.ab-stat-item { text-align:center; flex:1; }
+		.ab-stat-icon { margin-bottom:4px; }
+		.ab-stat-value { display:block; font-size:18px; font-weight:700; color:var(--text-main); }
+		.ab-stat-label { font-size:10px; color:var(--text-sub); text-transform:uppercase; }
+
+		/* Textarea */
+		.ab-textarea { width:100% !important; min-height:100px; background:rgba(0,0,0,.3) !important; border:1px solid var(--border-color) !important; border-radius:6px !important; color:#ccc !important; font-family:'Consolas','Monaco',monospace; font-size:11px !important; padding:10px !important; resize:vertical; outline:none !important; box-sizing:border-box; }
+		.ab-textarea:focus { border-color:var(--accent-color) !important; outline:none !important; }
+
+		/* Toast */
+		#ab-toast { position:absolute; top:10px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,.85); color:#fff; padding:10px 20px; border-radius:20px; font-size:13px; z-index:20000; display:none; opacity:0; transition:opacity .3s ease,top .3s ease; box-shadow:0 4px 12px rgba(0,0,0,.3); border:1px solid rgba(255,255,255,.1); cursor:default; max-width:90%; text-align:center; }
+		#ab-toast.show { display:flex; align-items:center; gap:8px; opacity:1; top:20px; }
+		#ab-toast.warn { background:rgba(220,38,38,.92); border-color:rgba(255,100,100,.4); animation:abToastPulse 2s ease-in-out infinite; }
+		@keyframes abToastPulse { 0%,100%{box-shadow:0 4px 12px rgba(220,38,38,.3)} 50%{box-shadow:0 4px 20px rgba(220,38,38,.6)} }
+		#ab-toast .ab-toast-close { background:none; border:none; color:rgba(255,255,255,.7); font-size:16px; cursor:pointer; padding:0 0 0 4px; line-height:1; }
+		#ab-toast .ab-toast-close:hover { color:#fff; }
+
+		/* ===== 颜色覆盖 (V0.2 选择器) ===== */
+		body.color-user-message .antigravity-agent-side-panel .bg-gray-500\/15 .whitespace-pre-wrap,
+		body.color-user-message .antigravity-agent-side-panel .bg-gray-500\/15 [style*="word-break"] { color:var(--color-user-message) !important; }
+
+		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) p,
+		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) li,
+		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) h1,
+		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) h2,
+		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) h3,
+		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) h4,
+		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) strong,
+		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) ul,
+		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) ol,
+		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) table,
+		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) th,
+		body.color-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) td { color:var(--color-ai-response) !important; }
+
+		body.color-code-block .antigravity-agent-side-panel .leading-relaxed pre,
+		body.color-code-block .antigravity-agent-side-panel .leading-relaxed pre code,
+		body.color-code-block .antigravity-agent-side-panel .leading-relaxed pre span,
+		body.color-code-block .antigravity-agent-side-panel .leading-relaxed code.whitespace-pre-wrap { color:var(--color-code-block) !important; }
+
+		body.color-thinking .antigravity-agent-side-panel .leading-relaxed.select-text.opacity-70,
+		body.color-thinking .antigravity-agent-side-panel .leading-relaxed.select-text.opacity-70 * { color:var(--color-thinking) !important; }
+
+		/* ===== 字体大小覆盖 (V0.2 选择器) ===== */
+		body.fontsize-user-message .antigravity-agent-side-panel .bg-gray-500\/15 .whitespace-pre-wrap,
+		body.fontsize-user-message .antigravity-agent-side-panel .bg-gray-500\/15 [style*="word-break"] { font-size:var(--fontsize-user-message) !important; }
+
+		body.fontsize-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) p,
+		body.fontsize-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) li,
+		body.fontsize-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) h2,
+		body.fontsize-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) h3,
+		body.fontsize-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) strong,
+		body.fontsize-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) ul,
+		body.fontsize-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) ol,
+		body.fontsize-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) table,
+		body.fontsize-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) th,
+		body.fontsize-ai-response .antigravity-agent-side-panel .leading-relaxed.select-text:not(.opacity-70) td { font-size:var(--fontsize-ai-response) !important; }
+
+		body.fontsize-code-block .antigravity-agent-side-panel .leading-relaxed pre,
+		body.fontsize-code-block .antigravity-agent-side-panel .leading-relaxed pre code,
+		body.fontsize-code-block .antigravity-agent-side-panel .leading-relaxed pre span { font-size:var(--fontsize-code-block) !important; }
+
+		body.fontsize-thinking .antigravity-agent-side-panel .leading-relaxed.select-text.opacity-70,
+		body.fontsize-thinking .antigravity-agent-side-panel .leading-relaxed.select-text.opacity-70 * { font-size:var(--fontsize-thinking) !important; }
+
+		/* ===== 复制按钮 ===== */
+		.copy-btn { position:absolute; top:6px; right:26px; width:26px; height:26px; background:rgba(60,60,60,.9); border:1px solid rgba(255,255,255,.1); border-radius:5px; cursor:pointer; display:flex; align-items:center; justify-content:center; opacity:0; transition:all .2s ease; z-index:10; }
+		.copy-btn svg { width:14px; height:14px; fill:#ccc; }
+		.copy-btn:hover { background:rgba(102,126,234,.8); border-color:rgba(102,126,234,.5); }
+		.copy-btn:hover svg { fill:#fff; }
+		.copy-btn.copied { background:rgba(74,222,128,.8); }
+		.copy-btn.copied svg { fill:#fff; }
+		.copy-target { position:relative; }
+		.copy-target:hover .copy-btn { opacity:1; }
+
+		/* ===== LaTeX 公式 ===== */
+		.latex-block { display:block; text-align:center; margin:1em 0; overflow-x:auto; }
+		.latex-error { color:#f87171; font-size:12px; background:rgba(248,113,113,.1); padding:2px 6px; border-radius:3px; font-family:monospace; }
+		.latex-code-rendered { padding:16px; text-align:center; overflow-x:auto; }
+		.latex-code-rendered .katex { font-size:1.1em; }
+		/* v0.2.2-patch: 行内公式样式 */
+		.latex-inline { display:inline; }
+		.latex-inline .katex { font-size:1em; }
+
+		/* ===== SVG 图标 ===== */
+		.ab-icon { width:16px; height:16px; fill:currentColor; flex-shrink:0; vertical-align:middle; }
+		.ab-icon-sm { width:14px; height:14px; }
+		.ab-icon-lg { width:18px; height:18px; }
+		.ab-setting-icon { display:flex; align-items:center; justify-content:center; }
+		.ab-setting-icon .ab-icon { color:var(--text-sub); }
+		.ab-accordion-title .ab-icon { color:var(--accent-color); }
+		.ab-tab-btn .ab-icon { margin-right:4px; }
+		.ab-stat-icon { display:flex; align-items:center; justify-content:center; margin-bottom:4px; }
+		.ab-stat-icon .ab-icon { width:18px; height:18px; }
+		.ab-accordion-icon { display:flex; align-items:center; transition:transform .3s; }
+		/* ===== 历史记录项目标签样式 ===== */
+		.ab-project-tag { display: inline-flex; align-items: center; padding: 1px 6px; margin-left: 6px; font-size: 10px; border-radius: 4px; background: rgba(96, 165, 250, 0.15); color: #60a5fa; border: 1px solid rgba(96, 165, 250, 0.3); font-weight: 500; white-space: nowrap; pointer-events: none; line-height: 1.2; flex-shrink: 0; }
+		.ab-hidden-row { display: none !important; height: 0 !important; min-height: 0 !important; visibility: hidden !important; opacity: 0 !important; margin: 0 !important; padding: 0 !important; }
+	</style>
+</head>
+
+<body aria-label="">
+
+
+
+</body>
+
+<!-- Startup (do not modify order of script tags!) -->
+<script src="./workbench.js" type="module"></script>
+<script>
+(function () {
+	'use strict';
+	/* ===== Antigravity Better v0.2.10 ===== */
+	console.log('[AB] Antigravity Better v0.2.10 Loading...');
+
+	// ===== Trusted Types Policy =====
+	let abPolicy = null;
+	if (window.trustedTypes && trustedTypes.createPolicy) {
+		try {
+			abPolicy = trustedTypes.createPolicy('antigravityBetter', { createHTML: (input) => input, createScriptURL: (input) => input });
+			console.log('[AB] ✅ Trusted Types Policy 创建成功');
+		} catch (e) { console.warn('[AB] ⚠️ Trusted Types Policy 创建失败:', e.message); }
+	}
+	function safeSetHTML(el, html) { el.innerHTML = abPolicy ? abPolicy.createHTML(html) : html; }
+
+	// ===== SVG 图标字典 =====
+	const ICONS = {
+		appearance: 'M12,22C6.49,22,2,17.51,2,12S6.49,2,12,2s10,4.49,10,10S17.51,22,12,22z M12,4c-4.41,0-8,3.59-8,8s3.59,8,8,8s8-3.59,8-8S16.41,4,12,4z M15.5,17c-0.83,0-1.5-0.67-1.5-1.5S14.67,14,15.5,14s1.5,0.67,1.5,1.5S16.33,17,15.5,17z M12,17c-0.83,0-1.5-0.67-1.5-1.5S11.17,14,12,14s1.5,0.67,1.5,1.5S12.83,17,12,17z M8.5,17c-0.83,0-1.5-0.67-1.5-1.5S7.67,14,8.5,14s1.5,0.67,1.5,1.5S9.33,17,8.5,17z M15.5,11c-0.83,0-1.5-0.67-1.5-1.5S14.67,8,15.5,8s1.5,0.67,1.5,1.5S16.33,11,15.5,11z M12,11c-0.83,0-1.5-0.67-1.5-1.5S11.17,8,12,8s1.5,0.67,1.5,1.5S12.83,11,12,11z M8.5,11C7.67,11,7,10.33,7,9.5S7.67,8,8.5,8s1.5,0.67,1.5,1.5S9.33,11,8.5,11z',
+		features: 'M22.7,19l-9.1-9.1c0.9-2.3,0.4-5-1.5-6.9c-2-2-5-2.4-7.4-1.3L9,6L6,9L1.6,4.7C0.4,7.1,0.9,10.1,2.9,12.1c1.9,1.9,4.6,2.4,6.9,1.5l9.1,9.1c0.4,0.4,1,0.4,1.4,0l2.3-2.3C23.1,20,23.1,19.3,22.7,19z',
+		system: 'M19.14,12.94c0.04-0.31,0.06-0.63,0.06-0.94c0-0.31-0.02-0.63-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.37,4.8,11.69,4.8,12s0.02,0.63,0.06,0.94l-2.03,1.58c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z',
+		user: 'M12,12c2.21,0,4-1.79,4-4s-1.79-4-4-4S8,5.79,8,8S9.79,12,12,12z M12,14c-2.67,0-8,1.34-8,4v2h16v-2C20,15.34,14.67,14,12,14z',
+		robot: 'M20,9V7c0-1.1-0.9-2-2-2h-3c0-1.66-1.34-3-3-3S9,3.34,9,5H6C4.9,5,4,5.9,4,7v2c-1.66,0-3,1.34-3,3s1.34,3,3,3v4c0,1.1,0.9,2,2,2h12c1.1,0,2-0.9,2-2v-4c1.66,0,3-1.34,3-3S21.66,9,20,9z M7.5,11.5C7.5,10.67,8.17,10,9,10s1.5,0.67,1.5,1.5S9.83,13,9,13S7.5,12.33,7.5,11.5z M16,17H8v-2h8V17z M15,13c-0.83,0-1.5-0.67-1.5-1.5S14.17,10,15,10s1.5,0.67,1.5,1.5S15.83,13,15,13z',
+		code: 'M9.4,16.6L4.8,12l4.6-4.6L8,6l-6,6l6,6L9.4,16.6z M14.6,16.6l4.6-4.6l-4.6-4.6L16,6l6,6l-6,6L14.6,16.6z',
+		check: 'M9,16.17L4.83,12l-1.42,1.41L9,19 21,7l-1.41-1.41z',
+		thought: 'M20,2H4C2.9,2,2,2.9,2,4v12c0,1.1,0.9,2,2,2h14l4,4V4C22,2.9,21.1,2,20,2z M13,14H11v-2h2V14z M14.1,9.1l-0.9,0.92C12.45,10.78,12,11.25,12,12h-2v-0.5c0-0.82,0.45-1.56,1-2.13l1.24-1.26C12.72,7.64,13,7.08,13,6.5C13,5.12,11.88,4,10.5,4S8,5.12,8,6.5H6C6,4.01,8.01,2,10.5,2S15,4.01,15,6.5C15,7.48,14.62,8.36,14.1,9.1z',
+		keyboard: 'M20,5H4C2.9,5,2.01,5.9,2.01,7L2,17c0,1.1,0.89,2,2,2h16c1.1,0,2-0.9,2-2V7C22,5.9,21.1,5,20,5z M11,8h2v2h-2V8z M11,11h2v2h-2V11z M8,8h2v2H8V8z M8,11h2v2H8V11z M7,13H5v-2h2V13z M7,10H5V8h2V10z M16,17H8v-2h8V17z M16,13h-2v-2h2V13z M16,10h-2V8h2V10z M19,13h-2v-2h2V13z M19,10h-2V8h2V10z',
+		sync: 'M12,6v3l4-4l-4-4v3c-4.42,0-8,3.58-8,8c0,1.57.46,3.03,1.24,4.26L6.7,14.8c-.45-.83-.7-1.79-.7-2.8C6,8.69,8.69,6,12,6z M18.76,7.74L17.3,9.2c.45.83.7,1.79.7,2.8c0,3.31-2.69,6-6,6v-3l-4,4l4,4v-3c4.42,0,8-3.58,8-8C20,10.43,19.54,8.97,18.76,7.74z',
+		shield: 'M12,1L3,5v6c0,5.55,3.84,10.74,9,12c5.16-1.26,9-6.45,9-12V5L12,1z M12,11.99h7c-0.53,4.12-3.28,7.79-7,8.94V12H5V6.3l7-3.11V11.99z',
+		update: 'M21,10.12h-6.78l2.74-2.82c-2.73-2.7-7.15-2.8-9.88-0.1c-2.73,2.71-2.73,7.08,0,9.79s7.15,2.71,9.88,0C18.32,15.65,19,14.08,19,12.1h2c0,1.98-0.88,4.55-2.64,6.29c-3.51,3.48-9.21,3.48-12.72,0c-3.5-3.47-3.53-9.11-0.02-12.58s9.14-3.47,12.65,0L21,3V10.12z M12.5,8v4.25l3.5,2.08l-0.72,1.21L11,13V8H12.5z',
+		copy: 'M16,1H4C2.9,1,2,1.9,2,3v14h2V3h12V1z M19,5H8C6.9,5,6,5.9,6,7v14c0,1.1,0.9,2,2,2h11c1.1,0,2-0.9,2-2V7C21,5.9,20.1,5,19,5z M19,21H8V7h11V21z',
+		chevronDown: 'M7.41,8.59L12,13.17l4.59-4.58L18,10l-6,6l-6-6L7.41,8.59z',
+		math: 'M19,3H5C3.9,3,3,3.9,3,5v14c0,1.1,0.9,2,2,2h14c1.1,0,2-0.9,2-2V5C21,3.9,20.1,3,19,3z M13.12,14.39L12,16l-2-3l-2.02,3H6l3.05-4.5L6.08,7h1.9l1.96,2.94L11.88,7h1.9l-2.94,4.5L13.91,15L13.12,14.39z M17,14h-2v2h-1v-2h-2v-1h2v-2h1v2h2V14z',
+		enter: 'M19,7v4H5.83l3.58-3.59L8,6l-6,6l6,6l1.41-1.41L5.83,13H21V7H19z',
+		counter: 'M19,3H5C3.9,3,3,3.9,3,5v14c0,1.1,0.9,2,2,2h14c1.1,0,2-0.9,2-2V5C21,3.9,20.1,3,19,3z M17,13h-4v4h-2v-4H7v-2h4V7h2v4h4V13z',
+		toolbox: 'M20.71,7.04c-0.34-0.34-0.85-0.56-1.36-0.56h-2.67l-0.55-1.1C15.72,4.53,14.85,4,13.9,4h-3.8C9.15,4,8.28,4.53,7.87,5.38L7.32,6.48H4.65c-0.51,0-1.02,0.22-1.36,0.56C2.95,7.38,2.73,7.89,2.73,8.4v9.12c0,0.51,0.22,1.02,0.56,1.36c0.34,0.34,0.85,0.56,1.36,0.56h14.7c0.51,0,1.02-0.22,1.36-0.56c0.34-0.34,0.56-0.85,0.56-1.36V8.4C21.27,7.89,21.05,7.38,20.71,7.04z M12,17c-2.76,0-5-2.24-5-5s2.24-5,5-5s5,2.24,5,5S14.76,17,12,17z M12,9c-1.66,0-3,1.34-3,3s1.34,3,3,3s3-1.34,3-3S13.66,9,12,9z',
+		history: 'M13,3C8.03,3,4,7.03,4,12H1l3.89,3.89l0.07,0.14L9,12H6c0-3.87,3.13-7,7-7s7,3.13,7,7s-3.13,7-7,7c-1.93,0-3.68-0.79-4.94-2.06l-1.42,1.42C8.27,19.99,10.51,21,13,21c4.97,0,9-4.03,9-9S17.97,3,13,3z M12,8v5l4.28,2.54l0.72-1.21L13.5,12.25V8H12z',
+	};
+	function createSvgIcon(id, extraClass) {
+		const svgNS = 'http://www.w3.org/2000/svg';
+		const svg = document.createElementNS(svgNS, 'svg');
+		svg.setAttribute('viewBox', '0 0 24 24');
+		svg.setAttribute('class', 'ab-icon' + (extraClass ? ' ' + extraClass : ''));
+		const path = document.createElementNS(svgNS, 'path');
+		path.setAttribute('d', ICONS[id] || '');
+		path.setAttribute('fill', 'currentColor');
+		svg.appendChild(path);
+		return svg;
+	}
+
+	// ===== I18N 字典 =====
+	const T = {
+		zh: {
+			tab_appearance: '外观', tab_features: '功能', tab_system: '系统',
+			colors_title: '颜色自定义', enable_custom_colors: '启用自定义颜色',
+			lbl_user_msg: '用户消息', lbl_ai_resp: 'AI回复', lbl_code: '代码块', lbl_status: '操作状态', lbl_thinking: '思考过程',
+			fontsize_title: '字体大小', enable_custom_fontsize: '启用自定义字体大小', btn_sync: '同步全部',
+			copy_title: '一键复制', enable_copy: '启用复制按钮',
+			hotkey_title: '快捷键设置', enable_hotkey: '自定义发送快捷键', lbl_send_hotkey: '发送快捷键',
+			auto_accept_title: '自动操作', enable_auto_accept: '启用自动操作', auto_accept_desc: '选择要自动点击的按钮类型',
+			lbl_remaining: '剩余次数', lbl_unlimited: '无限', btn_clear_stats: '清零',
+			toast_remaining_zero: '自动操作已暂停：剩余次数已用完',
+			stat_clicks: '已点击', stat_blocked: '已阻止', stat_verified: '已验证',
+			banned_title: '安全规则', banned_desc: '包含以下关键词的命令将不会被自动执行（每行一个）',
+			btn_save: '保存', btn_reset: '重置', banned_saved: '✓ 安全规则已保存', banned_reset: '✓ 已重置为默认值',
+			version_title: '版本更新', lbl_auto_update: '启动时自动检测', lbl_manual_update: '手动检测更新', btn_check_update: '立即检测',
+			update_checking: '正在检测...', update_latest: '✓ 已是最新版本', update_found: '✓ 发现新版本', update_failed: '✗ 检测失败',
+			update_available: '新版本可用', btn_download: '下载更新',
+			latex_title: 'LaTeX 公式', enable_latex: '启用 LaTeX 渲染', latex_desc: '自动渲染 AI 回复中的 LaTeX 数学公式',
+			sys_tools_title: '系统工具', lbl_dismiss_corrupt: '自动关闭安装损坏提示',
+			history_title: '历史记录管理', enable_history_filter: '启用历史项目分类与标注', history_desc: '自动标注历史对话所属项目，支持仅查看当前项目',
+			lbl_history_only_current: '仅显示当前项目的历史记录', lbl_history_show_tag: '在列表中显示项目标签', lbl_current_workspace: '当前项目'
+		},
+		en: {
+			tab_appearance: 'Appearance', tab_features: 'Features', tab_system: 'System',
+			colors_title: 'Colors', enable_custom_colors: 'Enable Custom Colors',
+			lbl_user_msg: 'User Message', lbl_ai_resp: 'AI Response', lbl_code: 'Code Block', lbl_status: 'Action Status', lbl_thinking: 'Thinking Process',
+			fontsize_title: 'Font Size', enable_custom_fontsize: 'Enable Custom Font Size', btn_sync: 'Sync All',
+			copy_title: 'One-Click Copy', enable_copy: 'Enable Copy Buttons',
+			hotkey_title: 'Shortcuts', enable_hotkey: 'Custom Send Hotkey', lbl_send_hotkey: 'Send Hotkey',
+			auto_accept_title: 'Auto Accept', enable_auto_accept: 'Enable Auto Accept', auto_accept_desc: 'Select button types to auto-click',
+			lbl_remaining: 'Remaining', lbl_unlimited: 'Unlimited', btn_clear_stats: 'Clear',
+			toast_remaining_zero: 'Auto-accept paused: quota exhausted',
+			stat_clicks: 'Clicked', stat_blocked: 'Blocked', stat_verified: 'Verified',
+			banned_title: 'Safety Rules', banned_desc: 'Commands containing these keywords will not be auto-executed (one per line)',
+			btn_save: 'Save', btn_reset: 'Reset', banned_saved: '✓ Safety rules saved', banned_reset: '✓ Reset to defaults',
+			version_title: 'Version Update', lbl_auto_update: 'Auto check on startup', lbl_manual_update: 'Manual check', btn_check_update: 'Check Now',
+			update_checking: 'Checking...', update_latest: '✓ Already latest', update_found: '✓ New version found', update_failed: '✗ Check failed',
+			update_available: 'New version available', btn_download: 'Download',
+			latex_title: 'LaTeX Formulas', enable_latex: 'Enable LaTeX Rendering', latex_desc: 'Auto-render LaTeX math formulas in AI responses',
+			sys_tools_title: 'System Tools', lbl_dismiss_corrupt: 'Auto-dismiss corrupt warning',
+			history_title: 'History Management', enable_history_filter: 'Enable Project History Filter', history_desc: 'Auto-tag and filter chat history by project workspace',
+			lbl_history_only_current: 'Only show current project history', lbl_history_show_tag: 'Show project tag in list', lbl_current_workspace: 'Current Project'
+		}
+	};
+	function t(key) { return (T[currentSettings.lang] || T.zh)[key] || key; }
+
+	// ===== 配置 =====
+	const APP_VERSION = '0.2.10';
+	const STORAGE_KEY = 'antigravity-better-settings';
+
+	const COLOR_CONFIGS = [
+		{ id: 'user-message', cssVar: '--color-user-message', cssClass: 'color-user-message', default: '#60A5FA', enabled: true, icon: 'user' },
+		{ id: 'ai-response', cssVar: '--color-ai-response', cssClass: 'color-ai-response', default: '#E0E0E0', enabled: true, icon: 'robot' },
+		{ id: 'code-block', cssVar: '--color-code-block', cssClass: 'color-code-block', default: '#A78BFA', enabled: true, icon: 'code' },
+		{ id: 'action-status', cssVar: '--color-action-status', cssClass: 'color-action-status', default: '#4ADE80', enabled: false, icon: 'check' },
+		{ id: 'thinking', cssVar: '--color-thinking', cssClass: 'color-thinking', default: '#9CA3AF', enabled: false, icon: 'thought' },
+	];
+
+	const FONTSIZE_CONFIGS = [
+		{ id: 'user-message', cssVar: '--fontsize-user-message', cssClass: 'fontsize-user-message', default: 14, enabled: true, icon: 'user' },
+		{ id: 'ai-response', cssVar: '--fontsize-ai-response', cssClass: 'fontsize-ai-response', default: 14, enabled: true, icon: 'robot' },
+		{ id: 'code-block', cssVar: '--fontsize-code-block', cssClass: 'fontsize-code-block', default: 13, enabled: true, icon: 'code' },
+		{ id: 'action-status', cssVar: '--fontsize-action-status', cssClass: 'fontsize-action-status', default: 13, enabled: false, icon: 'check' },
+		{ id: 'thinking', cssVar: '--fontsize-thinking', cssClass: 'fontsize-thinking', default: 13, enabled: false, icon: 'thought' },
+	];
+
+	// V0.2 复制配置：选择器已适配
+	const COPY_CONFIGS = [
+		{ id: 'copy-user', selector: '.bg-gray-500\\/15.select-text', textSelector: '.whitespace-pre-wrap', type: 'user' },
+		{ id: 'copy-thinking', selector: '.opacity-70.leading-relaxed', textSelector: null, type: 'thinking' },
+		{ id: 'copy-ai', selector: '.leading-relaxed.select-text:not(.opacity-70)', textSelector: null, type: 'ai' },
+	];
+
+	const HOTKEY_OPTIONS = [
+		{ id: 'enter', label: 'Enter', check: (e) => e.key === 'Enter' && !e.metaKey && !e.ctrlKey && !e.shiftKey },
+		{ id: 'cmd+enter', label: '⌘ Cmd + Enter', check: (e) => e.key === 'Enter' && e.metaKey },
+		{ id: 'ctrl+enter', label: 'Ctrl + Enter', check: (e) => e.key === 'Enter' && e.ctrlKey },
+		{ id: 'shift+enter', label: '⇧ Shift + Enter', check: (e) => e.key === 'Enter' && e.shiftKey },
+	];
+
+	const AUTO_ACCEPT_CONFIGS = [
+		{ id: 'accept', label: 'Accept', defaultEnabled: false },
+		{ id: 'accept all', label: 'Accept all', defaultEnabled: true },
+		{ id: 'always allow', label: 'Always Allow', defaultEnabled: true },
+		{ id: 'allow this conversation', label: 'Allow This Conversation', defaultEnabled: true },
+		{ id: 'retry', label: 'Retry', defaultEnabled: true },
+		{ id: 'run', label: 'Run', defaultEnabled: true },
+		{ id: 'apply', label: 'Apply', defaultEnabled: true },
+		{ id: 'execute', label: 'Execute', defaultEnabled: true },
+		{ id: 'confirm', label: 'Confirm', defaultEnabled: true },
+		{ id: 'allow', label: 'Allow', defaultEnabled: true },
+	];
+
+	const DEFAULT_BANNED_COMMANDS = ['rm -rf /','rm -rf ~','rm -rf *','format c:','del /f /s /q','rmdir /s /q',':(){:|:&};:','dd if=','mkfs.','> /dev/sda','chmod -R 777 /'];
+
+	const defaultSettings = {
+		lang: 'zh',
+		masterEnabled: false,
+		colors: COLOR_CONFIGS.reduce((acc, c) => { acc[c.id] = { color: c.default, enabled: c.enabled }; return acc; }, {}),
+		fontsizeMasterEnabled: false,
+		fontsizes: FONTSIZE_CONFIGS.reduce((acc, c) => { acc[c.id] = { size: c.default, enabled: c.enabled }; return acc; }, {}),
+		copyEnabled: false,
+		copy: COPY_CONFIGS.reduce((acc, c) => { acc[c.id] = { enabled: true }; return acc; }, {}),
+		hotkeyEnabled: false, sendHotkey: 'cmd+enter',
+		autoAcceptEnabled: false,
+		autoAcceptPatterns: AUTO_ACCEPT_CONFIGS.reduce((acc, c) => { acc[c.id] = c.defaultEnabled; return acc; }, {}),
+		autoAcceptRemaining: 30,
+		autoAcceptUnlimited: false,
+		bannedCommands: [...DEFAULT_BANNED_COMMANDS],
+		autoAcceptStats: { clicks: 0, blocked: 0, verified: 0 },
+		autoUpdateEnabled: true, latexEnabled: false, dismissCorruptEnabled: true,
+		historyFilterEnabled: false, historyOnlyCurrentWorkspace: false, historyShowProjectTag: true,
+		historyProjectMap: {},
+	};
+
+	// ===== 存储 =====
+	function loadSettings() {
+		try {
+			const saved = localStorage.getItem(STORAGE_KEY);
+			if (saved) {
+					const p = JSON.parse(saved);
+				return { ...defaultSettings, ...p,
+					colors: { ...defaultSettings.colors, ...p.colors },
+					fontsizes: { ...defaultSettings.fontsizes, ...p.fontsizes },
+					copy: { ...defaultSettings.copy, ...p.copy },
+					autoAcceptPatterns: { ...defaultSettings.autoAcceptPatterns, ...p.autoAcceptPatterns },
+					autoAcceptStats: { ...defaultSettings.autoAcceptStats, ...p.autoAcceptStats },
+					historyProjectMap: { ...defaultSettings.historyProjectMap, ...p.historyProjectMap },
+					bannedCommands: p.bannedCommands ?? [...DEFAULT_BANNED_COMMANDS],
+				};
+			}
+		} catch (e) { /* ignore */ }
+		return { ...defaultSettings };
+	}
+	function saveSettings(s) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch (e) { /* ignore */ } }
+	let currentSettings = loadSettings();
+
+	// ===== 应用颜色/字体设置 =====
+	function applyColorSettings() {
+		COLOR_CONFIGS.forEach(c => {
+			const s = currentSettings.colors[c.id];
+			document.documentElement.style.setProperty(c.cssVar, s.color);
+			document.body.classList.toggle(c.cssClass, currentSettings.masterEnabled && s.enabled);
+		});
+	}
+	function applyFontsizeSettings() {
+		FONTSIZE_CONFIGS.forEach(c => {
+			const s = currentSettings.fontsizes[c.id];
+			document.documentElement.style.setProperty(c.cssVar, s.size + 'px');
+			document.body.classList.toggle(c.cssClass, currentSettings.fontsizeMasterEnabled && s.enabled);
+		});
+	}
+
+	// ===== DOM 工具 =====
+	function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; }
+	function createToggle(checked, onChange) {
+		const label = el('label', 'ab-toggle');
+		const input = document.createElement('input'); input.type = 'checkbox'; input.checked = checked;
+		input.addEventListener('change', () => onChange(input.checked));
+		const slider = el('span', 'ab-toggle-slider');
+		label.appendChild(input); label.appendChild(slider); return label;
+	}
+	function createMainToggle(i18nKey, checked, onChange) {
+		const w = el('div', 'ab-main-toggle');
+		const lb = el('span', 'ab-main-toggle-label', t(i18nKey)); lb.dataset.i18n = i18nKey;
+		w.appendChild(lb); w.appendChild(createToggle(checked, onChange)); return w;
+	}
+	function createAccordion(i18nKey, expanded, iconId) {
+		const item = el('div', 'ab-accordion' + (expanded ? ' expanded' : ''));
+		const header = el('div', 'ab-accordion-header');
+		const title = el('span', 'ab-accordion-title');
+		if (iconId) title.appendChild(createSvgIcon(iconId));
+		const titleText = el('span', null, t(i18nKey)); titleText.dataset.i18n = i18nKey;
+		title.appendChild(titleText);
+		const icon = el('span', 'ab-accordion-icon');
+		icon.appendChild(createSvgIcon('chevronDown'));
+		header.appendChild(title); header.appendChild(icon);
+		header.addEventListener('click', () => item.classList.toggle('expanded'));
+		const body = el('div', 'ab-accordion-body');
+		const inner = el('div', 'ab-accordion-inner');
+		body.appendChild(inner); item.appendChild(header); item.appendChild(body);
+		return { item, inner };
+	}
+	function createSettingItem(iconId, i18nKey) {
+		const row = el('div', 'ab-setting');
+		const left = el('div', 'ab-setting-left');
+		const iconWrap = el('span', 'ab-setting-icon');
+		iconWrap.appendChild(createSvgIcon(iconId));
+		left.appendChild(iconWrap);
+		const name = el('span', 'ab-setting-name', t(i18nKey)); name.dataset.i18n = i18nKey;
+		left.appendChild(name);
+		const right = el('div', 'ab-setting-right');
+		row.appendChild(left); row.appendChild(right);
+		return { row, right };
+	}
+
+	// ===== I18N 更新 =====
+	let langSwitchBtn = null;
+	function updateLanguage() {
+		document.querySelectorAll('[data-i18n]').forEach(e => {
+			const key = e.dataset.i18n;
+			const val = t(key); if (val) e.textContent = val;
+		});
+		if (langSwitchBtn) langSwitchBtn.textContent = currentSettings.lang === 'zh' ? 'English' : '中文';
+	}
+
+	// ===== 创建设置面板 =====
+	function createSettingsUI(panelEl) {
+		if (panelEl.querySelector('#ab-settings-btn')) return;
+		const autoAcceptPatternControls = {};
+
+		// 悬浮按钮
+		const btn = el('button'); btn.id = 'ab-settings-btn'; btn.title = 'Antigravity Better Settings';
+		const svgNS = 'http://www.w3.org/2000/svg';
+		const svg = document.createElementNS(svgNS, 'svg'); svg.setAttribute('viewBox', '0 0 24 24');
+		const path = document.createElementNS(svgNS, 'path');
+		path.setAttribute('d', 'M19.14,12.94c0.04-0.31,0.06-0.63,0.06-0.94c0-0.31-0.02-0.63-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.37,4.8,11.69,4.8,12s0.02,0.63,0.06,0.94l-2.03,1.58c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z');
+		svg.appendChild(path); btn.appendChild(svg); panelEl.appendChild(btn);
+
+		// 遮罩层 + 弹窗
+		const overlay = el('div'); overlay.id = 'ab-overlay';
+		const modal = el('div'); modal.id = 'ab-modal';
+
+		// === Header ===
+		const header = el('div', 'ab-header');
+		const headerLeft = el('div', 'ab-header-left');
+		const brand = el('span', 'ab-brand', 'Antigravity Better');
+		const ver = el('span', 'ab-version', 'v' + APP_VERSION); brand.appendChild(ver);
+		const links = el('div', 'ab-brand-links');
+		const link1 = document.createElement('a'); link1.className = 'ab-brand-link'; link1.href = 'https://dpit.lib00.com'; link1.target = '_blank'; link1.textContent = 'dpit.lib00.com';
+		const link2 = document.createElement('a'); link2.className = 'ab-brand-link'; link2.href = 'https://github.com/016/Antigravity-Better'; link2.target = '_blank'; link2.textContent = 'GitHub';
+		links.appendChild(link1); links.appendChild(link2);
+		headerLeft.appendChild(brand); headerLeft.appendChild(links);
+		const headerRight = el('div', 'ab-header-right');
+		langSwitchBtn = el('button', 'ab-lang-switch', currentSettings.lang === 'zh' ? 'English' : '中文');
+		langSwitchBtn.addEventListener('click', () => { currentSettings.lang = currentSettings.lang === 'zh' ? 'en' : 'zh'; saveSettings(currentSettings); updateLanguage(); });
+		const closeBtn = el('button', 'ab-close', '×');
+		headerRight.appendChild(langSwitchBtn); headerRight.appendChild(closeBtn);
+		header.appendChild(headerLeft); header.appendChild(headerRight);
+		modal.appendChild(header);
+
+		// === Tab 导航 ===
+		const tabNav = el('div', 'ab-tab-nav');
+		const tabs = [
+			{ id: 'appearance', i18n: 'tab_appearance', icon: 'appearance' },
+			{ id: 'features', i18n: 'tab_features', icon: 'features' },
+			{ id: 'system', i18n: 'tab_system', icon: 'system' },
+		];
+		const tabContents = {};
+		tabs.forEach((tab, i) => {
+			const tbtn = el('button', 'ab-tab-btn' + (i === 0 ? ' active' : ''));
+			tbtn.appendChild(createSvgIcon(tab.icon));
+			const tbtnText = el('span', null, t(tab.i18n)); tbtnText.dataset.i18n = tab.i18n;
+			tbtn.appendChild(tbtnText);
+			tbtn.dataset.tab = tab.id;
+			tabNav.appendChild(tbtn);
+			const content = el('div', 'ab-tab-content' + (i === 0 ? ' active' : ''));
+			tabContents[tab.id] = content;
+		});
+		modal.appendChild(tabNav);
+
+		// Tab 切换逻辑
+		tabNav.addEventListener('click', (e) => {
+			const tb = e.target.closest('.ab-tab-btn'); if (!tb) return;
+			tabNav.querySelectorAll('.ab-tab-btn').forEach(b => b.classList.remove('active'));
+			tb.classList.add('active');
+			Object.values(tabContents).forEach(c => c.classList.remove('active'));
+			tabContents[tb.dataset.tab].classList.add('active');
+		});
+
+		// === Body ===
+		const body = el('div', 'ab-body');
+
+		// ============ Tab: 外观 ============
+		const tabAppearance = tabContents['appearance'];
+
+		// -- 颜色自定义 --
+		const colorAcc = createAccordion('colors_title', true, 'appearance');
+		colorAcc.inner.appendChild(createMainToggle('enable_custom_colors', currentSettings.masterEnabled, (v) => {
+			currentSettings.masterEnabled = v; saveSettings(currentSettings); applyColorSettings();
+		}));
+		COLOR_CONFIGS.forEach(c => {
+			const s = currentSettings.colors[c.id];
+			const lbl = c.id === 'user-message' ? 'lbl_user_msg' : c.id === 'ai-response' ? 'lbl_ai_resp' : c.id === 'code-block' ? 'lbl_code' : c.id === 'action-status' ? 'lbl_status' : 'lbl_thinking';
+			const { row, right } = createSettingItem(c.icon, lbl);
+			right.appendChild(createToggle(s.enabled, (v) => { currentSettings.colors[c.id].enabled = v; saveSettings(currentSettings); applyColorSettings(); }));
+			const ci = document.createElement('input'); ci.type = 'color'; ci.className = 'ab-color-input'; ci.value = s.color;
+			ci.addEventListener('input', () => { currentSettings.colors[c.id].color = ci.value; saveSettings(currentSettings); applyColorSettings(); });
+			right.appendChild(ci);
+			colorAcc.inner.appendChild(row);
+		});
+		tabAppearance.appendChild(colorAcc.item);
+
+		// -- 字体大小 --
+		const fontAcc = createAccordion('fontsize_title', false, 'math');
+		fontAcc.inner.appendChild(createMainToggle('enable_custom_fontsize', currentSettings.fontsizeMasterEnabled, (v) => {
+			currentSettings.fontsizeMasterEnabled = v; saveSettings(currentSettings); applyFontsizeSettings();
+		}));
+		FONTSIZE_CONFIGS.forEach((c, idx) => {
+			const s = currentSettings.fontsizes[c.id];
+			const lbl = c.id === 'user-message' ? 'lbl_user_msg' : c.id === 'ai-response' ? 'lbl_ai_resp' : c.id === 'code-block' ? 'lbl_code' : c.id === 'action-status' ? 'lbl_status' : 'lbl_thinking';
+			const { row, right } = createSettingItem(c.icon, lbl);
+			right.appendChild(createToggle(s.enabled, (v) => { currentSettings.fontsizes[c.id].enabled = v; saveSettings(currentSettings); applyFontsizeSettings(); }));
+			const fi = document.createElement('input'); fi.type = 'number'; fi.className = 'ab-fontsize-input'; fi.value = s.size; fi.min = 10; fi.max = 24;
+			fi.addEventListener('change', () => { currentSettings.fontsizes[c.id].size = parseInt(fi.value) || c.default; saveSettings(currentSettings); applyFontsizeSettings(); });
+			right.appendChild(fi); right.appendChild(document.createTextNode(' px'));
+			// 第一个项加同步按钮
+			if (idx === 0) {
+				const syncBtn = el('button', 'ab-sync-btn', t('btn_sync')); syncBtn.dataset.i18n = 'btn_sync';
+				syncBtn.addEventListener('click', () => {
+					const val = parseInt(fi.value) || c.default;
+					FONTSIZE_CONFIGS.forEach(fc => { currentSettings.fontsizes[fc.id].size = val; });
+					saveSettings(currentSettings); applyFontsizeSettings();
+					fontAcc.inner.querySelectorAll('.ab-fontsize-input').forEach(inp => inp.value = val);
+				});
+				right.appendChild(syncBtn);
+			}
+			fontAcc.inner.appendChild(row);
+		});
+		tabAppearance.appendChild(fontAcc.item);
+
+		// -- LaTeX --
+		const latexAcc = createAccordion('latex_title', false, 'math');
+		const latexStatusEl = el('div', 'ab-save-status');
+		latexAcc.inner.appendChild(createMainToggle('enable_latex', currentSettings.latexEnabled, (v) => {
+			currentSettings.latexEnabled = v; saveSettings(currentSettings); applyLatexSettings();
+		}));
+		const latexDesc = el('div', 'ab-setting-desc', t('latex_desc')); latexDesc.dataset.i18n = 'latex_desc';
+		latexAcc.inner.appendChild(latexDesc); latexAcc.inner.appendChild(latexStatusEl);
+		tabAppearance.appendChild(latexAcc.item);
+
+		// ============ Tab: 功能 ============
+		const tabFeatures = tabContents['features'];
+
+		// -- 一键复制 --
+		const copyAcc = createAccordion('copy_title', true, 'copy');
+		copyAcc.inner.appendChild(createMainToggle('enable_copy', currentSettings.copyEnabled, (v) => {
+			currentSettings.copyEnabled = v; saveSettings(currentSettings); applyCopySettings(panelEl);
+		}));
+		const copyI18nMap = { 'copy-user': 'lbl_user_msg', 'copy-thinking': 'lbl_thinking', 'copy-ai': 'lbl_ai_resp' };
+		const copyIconMap = { 'copy-user': 'user', 'copy-thinking': 'thought', 'copy-ai': 'robot' };
+		COPY_CONFIGS.forEach(c => {
+			const { row, right } = createSettingItem(copyIconMap[c.id], copyI18nMap[c.id]);
+			right.appendChild(createToggle(currentSettings.copy[c.id]?.enabled ?? true, (v) => {
+				currentSettings.copy[c.id].enabled = v; saveSettings(currentSettings);
+				removeCopyButtons(panelEl); if (currentSettings.copyEnabled) injectCopyButtons(panelEl);
+			}));
+			copyAcc.inner.appendChild(row);
+		});
+		tabFeatures.appendChild(copyAcc.item);
+
+		// -- 快捷键 --
+		const hotkeyAcc = createAccordion('hotkey_title', false, 'keyboard');
+		hotkeyAcc.inner.appendChild(createMainToggle('enable_hotkey', currentSettings.hotkeyEnabled, (v) => {
+			currentSettings.hotkeyEnabled = v; saveSettings(currentSettings); applyHotkeySettings();
+		}));
+		const { row: hkRow, right: hkRight } = createSettingItem('enter', 'lbl_send_hotkey');
+		const hkSelect = el('select', 'ab-select-input');
+		HOTKEY_OPTIONS.forEach(o => { const opt = el('option', null, o.label); opt.value = o.id; hkSelect.appendChild(opt); });
+		hkSelect.value = currentSettings.sendHotkey;
+		hkSelect.addEventListener('change', () => { currentSettings.sendHotkey = hkSelect.value; saveSettings(currentSettings); if (currentSettings.hotkeyEnabled) applyHotkeySettings(); });
+		hkRight.appendChild(hkSelect);
+		hotkeyAcc.inner.appendChild(hkRow);
+		tabFeatures.appendChild(hotkeyAcc.item);
+
+		// -- 自动操作 --
+		const autoAcc = createAccordion('auto_accept_title', false, 'robot');
+		autoAcc.inner.appendChild(createMainToggle('enable_auto_accept', currentSettings.autoAcceptEnabled, (v) => {
+			currentSettings.autoAcceptEnabled = v; saveSettings(currentSettings); applyAutoAcceptSettings(panelEl);
+		}));
+		const aaDesc = el('div', 'ab-setting-desc', t('auto_accept_desc')); aaDesc.dataset.i18n = 'auto_accept_desc';
+		autoAcc.inner.appendChild(aaDesc);
+		// Pattern grid
+		const patternGrid = el('div', 'ab-pattern-grid');
+		AUTO_ACCEPT_CONFIGS.forEach(c => {
+			const isOn = currentSettings.autoAcceptPatterns[c.id];
+			const lbl = el('label', 'ab-pattern-item' + (isOn ? ' active' : ''));
+			const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = isOn;
+			autoAcceptPatternControls[c.id] = { checkbox: cb, label: lbl };
+			cb.addEventListener('change', () => { currentSettings.autoAcceptPatterns[c.id] = cb.checked; lbl.classList.toggle('active', cb.checked); saveSettings(currentSettings); });
+			lbl.appendChild(cb); lbl.appendChild(el('span', null, c.label)); patternGrid.appendChild(lbl);
+		});
+		autoAcc.inner.appendChild(patternGrid);
+		// 剩余次数设置
+		const { row: remainRow, right: remainRight } = createSettingItem('counter', 'lbl_remaining');
+		const remainInput = document.createElement('input'); remainInput.type = 'number'; remainInput.className = 'ab-fontsize-input';
+		remainInput.min = 0; remainInput.max = 9999; remainInput.value = currentSettings.autoAcceptRemaining;
+		remainInput.style.width = '58px';
+		remainInput.addEventListener('change', () => { currentSettings.autoAcceptRemaining = Math.max(0, parseInt(remainInput.value) || 0); saveSettings(currentSettings); });
+		const unlimitedLbl = el('label', 'ab-pattern-item' + (currentSettings.autoAcceptUnlimited ? ' active' : ''));
+		unlimitedLbl.style.cssText = 'margin:0; padding:2px 8px;';
+		const unlimitedCb = document.createElement('input'); unlimitedCb.type = 'checkbox'; unlimitedCb.checked = currentSettings.autoAcceptUnlimited;
+		unlimitedCb.addEventListener('change', () => {
+			currentSettings.autoAcceptUnlimited = unlimitedCb.checked; unlimitedLbl.classList.toggle('active', unlimitedCb.checked);
+			remainInput.disabled = unlimitedCb.checked; remainInput.style.opacity = unlimitedCb.checked ? '0.4' : '1';
+			saveSettings(currentSettings);
+		});
+		unlimitedLbl.appendChild(unlimitedCb);
+		const unlimitedSpan = el('span', null, t('lbl_unlimited')); unlimitedSpan.dataset.i18n = 'lbl_unlimited'; unlimitedLbl.appendChild(unlimitedSpan);
+		remainInput.disabled = currentSettings.autoAcceptUnlimited; remainInput.style.opacity = currentSettings.autoAcceptUnlimited ? '0.4' : '1';
+		remainRight.appendChild(remainInput); remainRight.appendChild(unlimitedLbl);
+		autoAcc.inner.appendChild(remainRow);
+		// Stats
+		const statsPanel = el('div', 'ab-stats-panel');
+		const statClicksEl = el('span', 'ab-stat-value', String(currentSettings.autoAcceptStats.clicks));
+		const statBlockedEl = el('span', 'ab-stat-value', String(currentSettings.autoAcceptStats.blocked));
+		const statVerifiedEl = el('span', 'ab-stat-value', String(currentSettings.autoAcceptStats.verified));
+		[{ icon: 'check', el: statClicksEl, i18n: 'stat_clicks' }, { icon: 'shield', el: statBlockedEl, i18n: 'stat_blocked' }, { icon: 'check', el: statVerifiedEl, i18n: 'stat_verified' }].forEach(s => {
+			const item = el('div', 'ab-stat-item');
+			const statIcon = el('span', 'ab-stat-icon');
+			statIcon.appendChild(createSvgIcon(s.icon));
+			item.appendChild(statIcon); item.appendChild(s.el);
+			const lb = el('span', 'ab-stat-label', t(s.i18n)); lb.dataset.i18n = s.i18n; item.appendChild(lb);
+			statsPanel.appendChild(item);
+		});
+		// 清零按钮
+		const clearStatsBtn = el('button', 'ab-btn secondary', t('btn_clear_stats')); clearStatsBtn.dataset.i18n = 'btn_clear_stats';
+		clearStatsBtn.style.cssText = 'flex:none; padding:4px 10px; font-size:11px; margin-left:8px;';
+		clearStatsBtn.addEventListener('click', () => {
+			currentSettings.autoAcceptStats = { clicks: 0, blocked: 0, verified: 0 };
+			saveSettings(currentSettings);
+			statClicksEl.textContent = '0'; statBlockedEl.textContent = '0'; statVerifiedEl.textContent = '0';
+		});
+		const statsRow = el('div'); statsRow.style.cssText = 'display:flex; align-items:center;';
+		statsRow.appendChild(statsPanel); statsPanel.style.flex = '1';
+		statsRow.appendChild(clearStatsBtn);
+		autoAcc.inner.appendChild(statsRow);
+		tabFeatures.appendChild(autoAcc.item);
+
+		// -- 安全规则 --
+		const bannedAcc = createAccordion('banned_title', false, 'shield');
+		const bannedDescEl = el('div', 'ab-setting-desc', t('banned_desc')); bannedDescEl.dataset.i18n = 'banned_desc';
+		bannedAcc.inner.appendChild(bannedDescEl);
+		const bannedInput = el('textarea', 'ab-textarea'); bannedInput.rows = 6;
+		bannedInput.value = (currentSettings.bannedCommands || []).join('\n');
+		bannedAcc.inner.appendChild(bannedInput);
+		const bannedBtnGroup = el('div', 'ab-btn-group');
+		const bannedSaveStatus = el('div', 'ab-save-status');
+		const saveBtn = el('button', 'ab-btn primary', t('btn_save')); saveBtn.dataset.i18n = 'btn_save';
+		saveBtn.addEventListener('click', () => {
+			currentSettings.bannedCommands = bannedInput.value.split('\n').map(l => l.trim()).filter(l => l);
+			saveSettings(currentSettings); bannedSaveStatus.textContent = t('banned_saved'); setTimeout(() => bannedSaveStatus.textContent = '', 3000);
+		});
+		const resetBtn = el('button', 'ab-btn secondary', t('btn_reset')); resetBtn.dataset.i18n = 'btn_reset';
+		resetBtn.addEventListener('click', () => {
+			currentSettings.bannedCommands = [...DEFAULT_BANNED_COMMANDS]; bannedInput.value = DEFAULT_BANNED_COMMANDS.join('\n');
+			saveSettings(currentSettings); bannedSaveStatus.textContent = t('banned_reset'); setTimeout(() => bannedSaveStatus.textContent = '', 3000);
+		});
+		bannedBtnGroup.appendChild(saveBtn); bannedBtnGroup.appendChild(resetBtn);
+		bannedAcc.inner.appendChild(bannedBtnGroup); bannedAcc.inner.appendChild(bannedSaveStatus);
+		tabFeatures.appendChild(bannedAcc.item);
+
+		// -- 历史记录管理 --
+		const historyAcc = createAccordion('history_title', false, 'history');
+		historyAcc.inner.appendChild(createMainToggle('enable_history_filter', currentSettings.historyFilterEnabled, (v) => {
+			currentSettings.historyFilterEnabled = v; saveSettings(currentSettings); applyHistoryFilterSettings(panelEl);
+		}));
+		const historyDesc = el('div', 'ab-setting-desc', t('history_desc')); historyDesc.dataset.i18n = 'history_desc';
+		historyAcc.inner.appendChild(historyDesc);
+		const { row: onlyCurRow, right: onlyCurRight } = createSettingItem('history', 'lbl_history_only_current');
+		onlyCurRight.appendChild(createToggle(currentSettings.historyOnlyCurrentWorkspace, (v) => {
+			currentSettings.historyOnlyCurrentWorkspace = v; saveSettings(currentSettings); applyHistoryFilterSettings(panelEl);
+		}));
+		historyAcc.inner.appendChild(onlyCurRow);
+		const { row: tagRow, right: tagRight } = createSettingItem('history', 'lbl_history_show_tag');
+		tagRight.appendChild(createToggle(currentSettings.historyShowProjectTag, (v) => {
+			currentSettings.historyShowProjectTag = v; saveSettings(currentSettings); applyHistoryFilterSettings(panelEl);
+		}));
+		historyAcc.inner.appendChild(tagRow);
+		tabFeatures.appendChild(historyAcc.item);
+
+		// ============ Tab: 系统 ============
+		const tabSystem = tabContents['system'];
+		const verAcc = createAccordion('version_title', true, 'update');
+		const { row: autoRow, right: autoRight } = createSettingItem('sync', 'lbl_auto_update');
+		autoRight.appendChild(createToggle(currentSettings.autoUpdateEnabled, (v) => { currentSettings.autoUpdateEnabled = v; saveSettings(currentSettings); }));
+		verAcc.inner.appendChild(autoRow);
+		const { row: manualRow, right: manualRight } = createSettingItem('update', 'lbl_manual_update');
+		const updateStatusEl = el('div', 'ab-save-status');
+		const checkBtn = el('button', 'ab-btn secondary', t('btn_check_update')); checkBtn.dataset.i18n = 'btn_check_update';
+		checkBtn.style.cssText = 'flex:none; padding:4px 10px; font-size:11px;';
+		const downloadLink = document.createElement('a'); downloadLink.className = 'ab-btn secondary';
+		downloadLink.href = GITHUB_RELEASES; downloadLink.target = '_blank';
+		downloadLink.style.cssText = 'flex:none; padding:4px 10px; font-size:11px; text-decoration:none; display:none; text-align:center;';
+		downloadLink.textContent = t('btn_download'); downloadLink.dataset.i18n = 'btn_download';
+		checkBtn.addEventListener('click', async () => {
+			updateStatusEl.textContent = t('update_checking'); checkBtn.disabled = true; downloadLink.style.display = 'none';
+			const result = await checkForUpdate();
+			if (result.status === 'found') {
+				updateStatusEl.textContent = 'v' + APP_VERSION + ' → v' + result.remoteVersion;
+				downloadLink.style.display = 'inline-block';
+			} else {
+				updateStatusEl.textContent = result.status === 'latest' ? t('update_latest') : t('update_failed');
+				setTimeout(() => updateStatusEl.textContent = '', 3000);
+			}
+			checkBtn.disabled = false;
+		});
+		manualRight.appendChild(checkBtn); manualRight.appendChild(downloadLink);
+		// -- 系统工具 --
+		const toolsAcc = createAccordion('sys_tools_title', false, 'toolbox');
+		const { row: corruptRow, right: corruptRight } = createSettingItem('shield', 'lbl_dismiss_corrupt');
+		corruptRight.appendChild(createToggle(currentSettings.dismissCorruptEnabled, (v) => { currentSettings.dismissCorruptEnabled = v; saveSettings(currentSettings); }));
+		toolsAcc.inner.appendChild(corruptRow);
+		tabSystem.appendChild(toolsAcc.item);
+		// -- 版本更新 --
+		verAcc.inner.appendChild(manualRow); verAcc.inner.appendChild(updateStatusEl);
+		tabSystem.appendChild(verAcc.item);
+
+		// 组装 body
+		Object.values(tabContents).forEach(c => body.appendChild(c));
+		modal.appendChild(body);
+		overlay.appendChild(modal); panelEl.appendChild(overlay);
+
+		// Toast 通知 (options: { persistent, warn })
+		let toastEl = panelEl.querySelector('#ab-toast');
+		if (!toastEl) { toastEl = el('div'); toastEl.id = 'ab-toast'; panelEl.appendChild(toastEl); }
+		function hideToast() { toastEl.classList.remove('show', 'warn'); }
+		function showToast(msg, opts) {
+			const o = typeof opts === 'number' ? { duration: opts } : (opts || {});
+			while (toastEl.firstChild) toastEl.removeChild(toastEl.firstChild);
+			toastEl.appendChild(document.createTextNode(msg));
+			if (o.persistent) {
+				const closeBtn = el('button', 'ab-toast-close', '×');
+				closeBtn.addEventListener('click', hideToast);
+				toastEl.appendChild(closeBtn);
+			}
+			toastEl.classList.toggle('warn', !!o.warn);
+			toastEl.classList.add('show');
+			clearTimeout(window._abToastTimer);
+			if (!o.persistent) window._abToastTimer = setTimeout(hideToast, o.duration || 4000);
+		}
+		panelEl._abShowToast = showToast;
+
+		// === 事件 ===
+		btn.addEventListener('click', () => { overlay.classList.add('show'); requestAnimationFrame(() => overlay.classList.add('visible')); });
+		const closeModal = () => { overlay.classList.remove('visible'); setTimeout(() => overlay.classList.remove('show'), 300); };
+		closeBtn.addEventListener('click', closeModal);
+		overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+
+		console.log('[AB] ✅ 设置面板创建成功');
+
+		// ===== 功能逻辑函数引用 (需要 panelEl) =====
+
+		// -- 更新统计 --
+		function updateStats(delta) {
+			if (delta.clicks) currentSettings.autoAcceptStats.clicks += delta.clicks;
+			if (delta.blocked) currentSettings.autoAcceptStats.blocked += delta.blocked;
+			if (delta.verified) currentSettings.autoAcceptStats.verified += delta.verified;
+			// 倒计剩余次数
+			if (delta.clicks && !currentSettings.autoAcceptUnlimited) {
+				currentSettings.autoAcceptRemaining = Math.max(0, currentSettings.autoAcceptRemaining - delta.clicks);
+				remainInput.value = currentSettings.autoAcceptRemaining;
+				if (currentSettings.autoAcceptRemaining <= 0) showToast(t('toast_remaining_zero'), { persistent: true, warn: true });
+			}
+			saveSettings(currentSettings);
+			statClicksEl.textContent = currentSettings.autoAcceptStats.clicks;
+			statBlockedEl.textContent = currentSettings.autoAcceptStats.blocked;
+			statVerifiedEl.textContent = currentSettings.autoAcceptStats.verified;
+		}
+		// 存入 panelEl 供外部调用
+		panelEl._abUpdateStats = updateStats;
+	}
+
+	// ===== 复制功能 =====
+	let copyObserver = null;
+	const COPY_ICON_SVG = 'M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z';
+	const CHECK_ICON_SVG = 'M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z';
+
+	// 提取纯文本，排除 <style>/<script> 标签内容
+	function getCleanText(el) {
+		const clone = el.cloneNode(true);
+		clone.querySelectorAll('style, script').forEach(s => s.remove());
+		return clone.textContent.trim();
+	}
+
+	function createCopyButton(getText) {
+		const btn = el('button', 'copy-btn');
+		const svgNS = 'http://www.w3.org/2000/svg';
+		function setSvg(d) { while (btn.firstChild) btn.removeChild(btn.firstChild); const s = document.createElementNS(svgNS, 'svg'); s.setAttribute('viewBox', '0 0 24 24'); const p = document.createElementNS(svgNS, 'path'); p.setAttribute('d', d); s.appendChild(p); btn.appendChild(s); }
+		setSvg(COPY_ICON_SVG);
+		btn.addEventListener('click', (e) => {
+			e.stopPropagation(); e.preventDefault();
+			const ta = document.createElement('textarea'); ta.value = getText(); ta.style.position = 'fixed'; ta.style.left = '-9999px';
+			document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (err) {} document.body.removeChild(ta);
+			setSvg(CHECK_ICON_SVG); btn.classList.add('copied');
+			setTimeout(() => { setSvg(COPY_ICON_SVG); btn.classList.remove('copied'); }, 1500);
+		});
+		return btn;
+	}
+	function injectCopyButtons(panelEl) {
+		if (!currentSettings.copyEnabled) return;
+		const scope = panelEl || document.querySelector('.antigravity-agent-side-panel');
+		if (!scope) return;
+		COPY_CONFIGS.forEach(c => {
+			if (!currentSettings.copy[c.id]?.enabled) return;
+			scope.querySelectorAll(c.selector).forEach(target => {
+				if (target.querySelector('.copy-btn') || target.closest('#ab-overlay')) return;
+				target.classList.add('copy-target');
+				const getText = () => c.textSelector ? (target.querySelector(c.textSelector)?.textContent || getCleanText(target)) : getCleanText(target);
+				target.appendChild(createCopyButton(getText));
+			});
+		});
+	}
+	function removeCopyButtons(panelEl) {
+		const scope = panelEl || document.querySelector('.antigravity-agent-side-panel');
+		if (!scope) return;
+		scope.querySelectorAll('.copy-btn').forEach(b => b.remove());
+		scope.querySelectorAll('.copy-target').forEach(e => e.classList.remove('copy-target'));
+	}
+	function applyCopySettings(panelEl) {
+		if (currentSettings.copyEnabled) {
+			if (!copyObserver) {
+				const scope = panelEl || document.querySelector('.antigravity-agent-side-panel');
+				if (scope) { copyObserver = new MutationObserver(() => setTimeout(() => injectCopyButtons(panelEl), 100)); copyObserver.observe(scope, { childList: true, subtree: true }); }
+				injectCopyButtons(panelEl);
+			}
+		} else { if (copyObserver) { copyObserver.disconnect(); copyObserver = null; } removeCopyButtons(panelEl); }
+	}
+
+	// ===== 快捷键功能 =====
+	let hotkeyHandler = null;
+	const INPUT_SELECTOR = 'div[contenteditable="true"][data-lexical-editor="true"]';
+	const SEND_BTN_SELECTOR = 'button[data-tooltip-id="input-send-button-send-tooltip"]';
+
+	function applyHotkeySettings() {
+		if (hotkeyHandler) { document.removeEventListener('keydown', hotkeyHandler, { capture: true }); hotkeyHandler = null; }
+		if (!currentSettings.hotkeyEnabled) return;
+		const selected = currentSettings.sendHotkey;
+		const config = HOTKEY_OPTIONS.find(h => h.id === selected);
+		hotkeyHandler = function (e) {
+			const inputEl = e.target.closest(INPUT_SELECTOR);
+			if (!inputEl || e.key !== 'Enter') return;
+			if (inputEl.hasAttribute('aria-activedescendant')) return;
+			const menu = document.querySelector('.lexical-typeahead-menu');
+			if (menu && menu.style.display !== 'none') return;
+			if (config && config.check(e)) {
+				e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+				const sendBtn = document.querySelector(SEND_BTN_SELECTOR);
+				if (sendBtn) sendBtn.click();
+			} else if (e.key === 'Enter' && (!e.shiftKey || selected === 'shift+enter')) {
+				e.stopPropagation(); e.stopImmediatePropagation();
+			}
+		};
+		document.addEventListener('keydown', hotkeyHandler, { capture: true });
+	}
+
+	// ===== 自动操作功能 =====
+	let autoAcceptObserver = null, autoAcceptPermissionTimer = null, autoAcceptCommandTimer = null, isAutoAcceptRunning = false;
+	function isAutoAcceptButton(btn) {
+		if (!btn || btn.dataset.abClicked === 'true') return false;
+		const text = (btn.textContent || '').trim().toLowerCase();
+		if (!text || text.length > 50) return false;
+		// 排除下拉菜单触发器（如 "Always run" 按钮）
+		if (btn.hasAttribute('aria-haspopup')) return false;
+		// 排除列表项/建议按钮（带 title 且含 grow 的全宽按钮）
+		if (btn.title && btn.classList.contains('grow')) return false;
+		const patterns = Object.entries(currentSettings.autoAcceptPatterns).filter(([_, v]) => v).map(([k]) => k);
+		if (!patterns.length) return false;
+		const rejects = ['skip', 'reject', 'cancel', 'close', 'refine', 'dismiss', 'always'];
+		if (rejects.some(r => text.includes(r))) return false;
+		if (!patterns.some(p => text.includes(p))) return false;
+		const style = window.getComputedStyle(btn); const rect = btn.getBoundingClientRect();
+		return style.display !== 'none' && rect.width > 0 && !btn.disabled && btn.getAttribute('aria-disabled') !== 'true';
+	}
+	function findNearbyCommandText(btnEl) {
+		let cmd = ''; let container = btnEl.parentElement; let depth = 0;
+		while (container && depth < 10) {
+			let sib = container.previousElementSibling; let sc = 0;
+			while (sib && sc < 5) { if (/^(PRE|CODE)$/.test(sib.tagName)) cmd += ' ' + sib.textContent.trim(); sib.querySelectorAll('pre, code').forEach(e => cmd += ' ' + e.textContent.trim()); sib = sib.previousElementSibling; sc++; }
+			if (cmd.length > 10) break; container = container.parentElement; depth++;
+		}
+		return cmd.trim().toLowerCase();
+	}
+	function isCommandBanned(text) {
+		if (!text) return false;
+		const list = currentSettings.bannedCommands || [];
+		return list.some(p => p && text.toLowerCase().includes(p.toLowerCase()));
+	}
+	function isDiffConfirmationArea(btn) {
+		let node = btn;
+		for (let depth = 0; node && depth < 6; depth++) {
+			const text = (node.textContent || '').toLowerCase();
+			const className = typeof node.className === 'string' ? node.className : '';
+			if (className.includes('outline-solid') && className.includes('justify-between') && text.includes('file with changes') && text.includes('reject all') && text.includes('accept all')) return true;
+			node = node.parentElement;
+		}
+		return false;
+	}
+	function findDiffAcceptAllTarget(scope) {
+		const root = scope || document.querySelector('.antigravity-agent-side-panel');
+		if (!root) return null;
+		return Array.from(root.querySelectorAll('span')).find(el => {
+			if (el.dataset.abClicked === 'true') return false;
+			const text = (el.textContent || '').trim().toLowerCase();
+			const className = typeof el.className === 'string' ? el.className : '';
+			return text === 'accept all' && className.includes('cursor-pointer') && isDiffConfirmationArea(el);
+		});
+	}
+	function normalizeAutoAcceptText(text) {
+		return (text || '').toLowerCase().replace(/[\u200B-\u200D\uFEFF]/g, '').replace(/\s+/g, '').trim();
+	}
+	function isVisibleEnabledActionElement(el) {
+		if (!el || el.dataset.abClicked === 'true') return false;
+		const style = window.getComputedStyle(el);
+		const rect = el.getBoundingClientRect();
+		return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0 && !el.disabled && el.getAttribute('aria-disabled') !== 'true';
+	}
+	function resolvePermissionClickTarget(candidate, root) {
+		if (!candidate) return null;
+		const directButton = candidate.matches('button, [role="button"]') ? candidate : null;
+		const nestedButton = candidate.querySelector('button, [role="button"]');
+		const clickableSelf = typeof candidate.className === 'string' && candidate.className.includes('cursor-pointer') ? candidate : null;
+		const targets = [directButton, nestedButton, candidate.closest('button, [role="button"]'), candidate.closest('[class*="cursor-pointer"]'), clickableSelf].filter(Boolean);
+		return targets.find(el => root.contains(el) && !el.closest('#ab-overlay') && !el.closest('#ab-modal') && isVisibleEnabledActionElement(el));
+	}
+	function findScopedPermissionTarget(scope, expectedText) {
+		const root = scope || document.querySelector('.antigravity-agent-side-panel');
+		if (!root) return null;
+		const normalizedExpected = normalizeAutoAcceptText(expectedText);
+		const candidates = Array.from(root.querySelectorAll('button, [role="button"], span, div')).filter(el => {
+			if (el.dataset.abClicked === 'true') return false;
+			if (el.closest('#ab-overlay') || el.closest('#ab-modal')) return false;
+			return normalizeAutoAcceptText(el.textContent) === normalizedExpected;
+		});
+		for (const candidate of candidates) {
+			const target = resolvePermissionClickTarget(candidate, root);
+			if (target && target.dataset.abClicked !== 'true') return target;
+		}
+		return null;
+	}
+	async function performScopedPermissionAutoAccept(scope) {
+		if (!scope || !currentSettings.autoAcceptEnabled) return;
+		if (!currentSettings.autoAcceptUnlimited && currentSettings.autoAcceptRemaining <= 0) return;
+		if (currentSettings.autoAcceptPatterns['allow this conversation'] && (currentSettings.autoAcceptUnlimited || currentSettings.autoAcceptRemaining > 0)) {
+			const allowConversationTarget = findScopedPermissionTarget(scope, 'allow this conversation');
+			if (allowConversationTarget) {
+				allowConversationTarget.dataset.abClicked = 'true';
+				allowConversationTarget.click();
+				if (scope._abUpdateStats) scope._abUpdateStats({ clicks: 1 });
+				await new Promise(r => setTimeout(r, 100));
+			}
+		}
+		if (currentSettings.autoAcceptPatterns['always allow'] && (currentSettings.autoAcceptUnlimited || currentSettings.autoAcceptRemaining > 0)) {
+			const alwaysAllowTarget = findScopedPermissionTarget(scope, 'always allow');
+			if (alwaysAllowTarget) {
+				alwaysAllowTarget.dataset.abClicked = 'true';
+				alwaysAllowTarget.click();
+				if (scope._abUpdateStats) scope._abUpdateStats({ clicks: 1 });
+				await new Promise(r => setTimeout(r, 100));
+			}
+		}
+	}
+	async function performScopedCommandAutoAccept(scope) {
+		if (!scope || !currentSettings.autoAcceptEnabled) return;
+		if (!currentSettings.autoAcceptUnlimited && currentSettings.autoAcceptRemaining <= 0) return;
+		const buttons = scope.querySelectorAll('button');
+		for (const btn of buttons) {
+			if (!currentSettings.autoAcceptUnlimited && currentSettings.autoAcceptRemaining <= 0) break;
+			if (btn.dataset.abClicked === 'true') continue;
+			const text = (btn.textContent || '').trim().toLowerCase();
+			if (!/run|execute/i.test(text)) continue;
+			if (!isAutoAcceptButton(btn)) continue;
+			const nearby = findNearbyCommandText(btn);
+			if (isCommandBanned(nearby)) {
+				btn.dataset.abClicked = 'true';
+				if (scope._abUpdateStats) scope._abUpdateStats({ blocked: 1 });
+				continue;
+			}
+			btn.dataset.abClicked = 'true';
+			btn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+			if (scope._abUpdateStats) scope._abUpdateStats({ clicks: 1 });
+			await new Promise(r => setTimeout(r, 100));
+		}
+	}
+	async function performAutoAccept(panelEl) {
+		if (!currentSettings.autoAcceptEnabled || isAutoAcceptRunning) return;
+		// 非无限模式下，剩余次数为0则停止
+		if (!currentSettings.autoAcceptUnlimited && currentSettings.autoAcceptRemaining <= 0) return;
+		const scope = panelEl || document.querySelector('.antigravity-agent-side-panel');
+		if (!scope) return;
+		isAutoAcceptRunning = true;
+		try {
+			const buttons = scope.querySelectorAll('button');
+			for (const btn of buttons) {
+				if (!currentSettings.autoAcceptUnlimited && currentSettings.autoAcceptRemaining <= 0) break;
+				if (btn.dataset.abClicked === 'true') continue;
+				if (!isAutoAcceptButton(btn)) continue;
+				const text = (btn.textContent || '').trim().toLowerCase();
+				if (text === 'accept all' && !isDiffConfirmationArea(btn)) continue;
+				if (text === 'allow this conversation' || text === 'always allow') continue;
+				if (/run|execute/i.test(text)) {
+					const nearby = findNearbyCommandText(btn);
+					if (isCommandBanned(nearby)) {
+						btn.dataset.abClicked = 'true';
+						if (scope._abUpdateStats) scope._abUpdateStats({ blocked: 1 });
+						continue;
+					}
+				}
+				btn.dataset.abClicked = 'true';
+				btn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+				if (scope._abUpdateStats) scope._abUpdateStats({ clicks: 1 });
+				await new Promise(r => setTimeout(r, 100));
+			}
+			if (currentSettings.autoAcceptPatterns['accept all'] && (currentSettings.autoAcceptUnlimited || currentSettings.autoAcceptRemaining > 0)) {
+				const acceptAllTarget = findDiffAcceptAllTarget(scope);
+				if (acceptAllTarget && acceptAllTarget.dataset.abClicked !== 'true') {
+					acceptAllTarget.dataset.abClicked = 'true';
+					acceptAllTarget.click();
+					if (scope._abUpdateStats) scope._abUpdateStats({ clicks: 1 });
+					await new Promise(r => setTimeout(r, 100));
+				}
+			}
+			await performScopedCommandAutoAccept(scope);
+			await performScopedPermissionAutoAccept(scope);
+		} finally {
+			isAutoAcceptRunning = false;
+		}
+	}
+	function applyAutoAcceptSettings(panelEl) {
+		if (autoAcceptObserver) { autoAcceptObserver.disconnect(); autoAcceptObserver = null; }
+		if (autoAcceptPermissionTimer) { clearInterval(autoAcceptPermissionTimer); autoAcceptPermissionTimer = null; }
+		if (autoAcceptCommandTimer) { clearInterval(autoAcceptCommandTimer); autoAcceptCommandTimer = null; }
+		if (!currentSettings.autoAcceptEnabled) return;
+		const scope = panelEl || document.querySelector('.antigravity-agent-side-panel');
+		if (!scope) return;
+		autoAcceptObserver = new MutationObserver(() => { clearTimeout(window._abAATimer); window._abAATimer = setTimeout(() => performAutoAccept(panelEl), 500); });
+		autoAcceptObserver.observe(scope, { childList: true, subtree: true, attributes: true, characterData: true });
+		autoAcceptPermissionTimer = setInterval(() => { performScopedPermissionAutoAccept(scope).catch(() => {}); }, 1000);
+		autoAcceptCommandTimer = setInterval(() => { performScopedCommandAutoAccept(scope).catch(() => {}); }, 1000);
+		performAutoAccept(panelEl);
+	}
+
+	// ===== LaTeX 渲染 =====
+	let katexLoaded = false, katexLoading = false, latexObserver = null;
+	const KATEX_CSS = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css';
+	const KATEX_JS = 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js';
+
+	function loadKaTeX() {
+		return new Promise((resolve, reject) => {
+			if (katexLoaded) { resolve(); return; }
+			if (katexLoading) { const iv = setInterval(() => { if (katexLoaded) { clearInterval(iv); resolve(); } }, 100); return; }
+			katexLoading = true;
+			// CSP 只允许 self/unsafe-inline/unsafe-eval/blob，外部 CDN 被阻止
+			// fetch 获取内容后：CSS 内联 <style>，JS 用 IIFE 包装后通过 blob URL 加载
+			// IIFE 参数遮蔽 module/exports/define，强制 UMD 走 window 全局分支
+			Promise.all([
+				fetch(KATEX_CSS).then(r => r.text()),
+				fetch(KATEX_JS).then(r => r.text())
+			]).then(([css, js]) => {
+				const style = document.createElement('style'); style.textContent = css; document.head.appendChild(style);
+				// 包装 IIFE：遮蔽 Electron 全局的 module/exports/define
+				const wrappedJs = '(function(module, exports, define) {\n' + js + '\n}).call(window, undefined, undefined, undefined);';
+				const blob = new Blob([wrappedJs], { type: 'application/javascript' });
+				const blobUrl = URL.createObjectURL(blob);
+				const script = document.createElement('script');
+				script.src = abPolicy ? abPolicy.createScriptURL(blobUrl) : blobUrl;
+				script.onload = () => {
+					URL.revokeObjectURL(blobUrl); katexLoaded = true; katexLoading = false;
+					console.log('[AB] ✅ KaTeX 加载成功, window.katex:', !!window.katex);
+					resolve();
+				};
+				script.onerror = () => { URL.revokeObjectURL(blobUrl); katexLoading = false; reject(new Error('KaTeX blob load failed')); };
+				document.head.appendChild(script);
+			}).catch(e => { katexLoading = false; reject(new Error('KaTeX fetch failed: ' + e.message)); });
+		});
+	}
+	// 渲染单个元素 (p/li/td/th/h1-h6) 中的内联/块级 LaTeX
+	// v0.2.2-patch: 增强正则，支持 \(...\) / \[...\] 格式，扩展元素选择器
+	// 统一的 LaTeX 匹配模式（$...$, $$...$$, \(...\), \[...\]）
+	const LATEX_PATTERN = /(\$\$[\s\S]+?\$\$|\$(?!\$)(?:[^$\n]|\n(?!\n))+?\$(?!\$)|\\\[[\s\S]+?\\\]|\\\((?:[^\\]|\\(?!\)))+?\\\))/g;
+
+	// v0.2.2-patch: 修复 markdown 渲染器将 LaTeX 下标 _ 误解析为 <em>/<strong> 的问题
+	// 当公式 $\mathcal{L}_{\text{total}}$ 中的 _ 被 markdown 当作斜体标记时，
+	// DOM 中 $...$ 的内容会被 <em> 标签拆分，导致正则无法在单个文本节点中完整匹配。
+	// 解决方案：在处理前，检测并解包位于 $...$ 公式内部的 <em>/<strong> 元素。
+	function normalizeLatexInElement(elem) {
+		const text = elem.textContent;
+		LATEX_PATTERN.lastIndex = 0;
+		if (!LATEX_PATTERN.test(text)) return;
+		// 没有行内格式化元素则无需处理
+		const fmtEls = elem.querySelectorAll('em, strong, i, b');
+		if (fmtEls.length === 0) return;
+		let changed = false;
+		fmtEls.forEach(fmt => {
+			if (fmt.closest('pre, .latex-rendered')) return;
+			// 通过计算此元素之前的 $ 符号数量来判断是否处于公式内部
+			let dollars = 0;
+			const tw = document.createTreeWalker(elem, NodeFilter.SHOW_TEXT);
+			let nd;
+			while (nd = tw.nextNode()) {
+				// 判断此文本节点是否在 fmt 元素之前
+				if (fmt.compareDocumentPosition(nd) & Node.DOCUMENT_POSITION_PRECEDING) {
+					dollars += (nd.textContent.match(/\$/g) || []).length;
+				}
+			}
+			// 奇数个 $ → 此格式化元素位于公式 $...$ 内部
+			if (dollars % 2 === 1) {
+				const delim = (fmt.tagName === 'EM' || fmt.tagName === 'I') ? '_' : '**';
+				const tn = document.createTextNode(delim + fmt.textContent + delim);
+				fmt.parentNode.replaceChild(tn, fmt);
+				changed = true;
+			}
+		});
+		if (changed) elem.normalize(); // 合并相邻文本节点
+	}
+
+	function processLatexInElement(elem) {
+		if (elem.dataset.latexElemProcessed) return false;
+		// v0.2.2-patch: 先修复被 markdown 破坏的 LaTeX 公式
+		normalizeLatexInElement(elem);
+		const text = elem.textContent;
+		LATEX_PATTERN.lastIndex = 0;
+		if (!LATEX_PATTERN.test(text)) return false; LATEX_PATTERN.lastIndex = 0;
+		// 对于包含 $$ 或 \[...\] 的块级公式段落，整段替换
+		const blockPattern = /^\s*(?:\$\$([\s\S]+?)\$\$|\\\[([\s\S]+?)\\\])\s*$/;
+		const blockMatch = text.match(blockPattern);
+		if (blockMatch) {
+			try {
+				const formula = (blockMatch[1] || blockMatch[2]).trim();
+				const html = window.katex.renderToString(formula, { throwOnError: false, displayMode: true });
+				const wrap = document.createElement('div');
+				wrap.className = 'latex-block latex-rendered';
+				wrap.dataset.latexOriginal = text;
+				wrap.dataset.latexOriginalTag = elem.tagName.toLowerCase();
+				safeSetHTML(wrap, html);
+				elem.parentNode.replaceChild(wrap, elem);
+				return true;
+			} catch (e) { return false; }
+		}
+		// v0.2.2-patch: 先将包含纯 LaTeX 的 <code> 元素解包为文本节点
+		elem.querySelectorAll('code').forEach(code => {
+			if (code.closest('pre')) return; // 不处理 <pre> 内的 <code>
+			const ct = code.textContent;
+			LATEX_PATTERN.lastIndex = 0;
+			if (LATEX_PATTERN.test(ct) && ct.replace(LATEX_PATTERN, '').trim() === '') {
+				// 整个 <code> 内容都是 LaTeX 公式，解包
+				code.replaceWith(document.createTextNode(ct));
+			}
+		});
+		// 内联公式：逐个文本节点处理
+		const walker = document.createTreeWalker(elem, NodeFilter.SHOW_TEXT, null, false);
+		const nodes = []; let n;
+		while (n = walker.nextNode()) {
+			if (n.parentNode && /^(code|pre|script|style)$/i.test(n.parentNode.tagName)) continue;
+			if (n.parentNode && n.parentNode.classList && n.parentNode.classList.contains('latex-rendered')) continue;
+			if (n.textContent.includes('$') || n.textContent.includes('\\(') || n.textContent.includes('\\[')) nodes.push(n);
+		}
+		let has = false;
+		for (let i = nodes.length - 1; i >= 0; i--) {
+			const textNode = nodes[i];
+			const nodeText = textNode.textContent;
+			LATEX_PATTERN.lastIndex = 0;
+			if (!LATEX_PATTERN.test(nodeText)) continue; LATEX_PATTERN.lastIndex = 0;
+			const frag = document.createDocumentFragment(); let last = 0, m;
+			while ((m = LATEX_PATTERN.exec(nodeText)) !== null) {
+				if (m.index > last) frag.appendChild(document.createTextNode(nodeText.slice(last, m.index)));
+				const full = m[0];
+				const isBlock = full.startsWith('$$') || full.startsWith('\\[');
+				let formula;
+				if (full.startsWith('$$')) formula = full.slice(2, -2).trim();
+				else if (full.startsWith('\\[')) formula = full.slice(2, -2).trim();
+				else if (full.startsWith('\\(')) formula = full.slice(2, -2).trim();
+				else formula = full.slice(1, -1).trim();
+				try {
+					const html = window.katex.renderToString(formula, { throwOnError: false, displayMode: isBlock });
+					const wrap = document.createElement(isBlock ? 'div' : 'span');
+					wrap.className = isBlock ? 'latex-block latex-rendered' : 'latex-inline latex-rendered';
+					wrap.dataset.latexOriginal = full; safeSetHTML(wrap, html); frag.appendChild(wrap);
+				} catch (e) { frag.appendChild(document.createTextNode(full)); }
+				last = m.index + full.length;
+			}
+			if (last < nodeText.length) frag.appendChild(document.createTextNode(nodeText.slice(last)));
+			textNode.parentNode.replaceChild(frag, textNode); has = true;
+		}
+		if (has) elem.dataset.latexElemProcessed = 'true';
+		return has;
+	}
+	// 渲染 latex 代码块（语言标记为 "latex" 的 <pre> 元素）
+	function processLatexCodeBlocks(scope) {
+		// V0.2 代码块结构: <pre> > div.relative... > div(标题含语言名) + div.p-3(代码内容)
+		scope.querySelectorAll('pre').forEach(pre => {
+			if (pre.dataset.latexCodeProcessed) return;
+			const codeContainer = pre.querySelector('div');
+			if (!codeContainer) return;
+			// 查找语言标签
+			const langLabel = codeContainer.querySelector('.font-sans.text-sm');
+			if (!langLabel || langLabel.textContent.trim().toLowerCase() !== 'latex') return;
+			// 获取代码内容（仅从 .line-content 提取，避免包含 <style> 标签文本）
+			const codeBody = codeContainer.querySelector('.p-3');
+			if (!codeBody) return;
+			const lineContents = codeBody.querySelectorAll('.line-content');
+			const formula = lineContents.length > 0
+				? Array.from(lineContents).map(l => l.textContent).join('\n').trim()
+				: codeBody.textContent.trim();
+			if (!formula) return;
+			try {
+				const html = window.katex.renderToString(formula, { throwOnError: false, displayMode: true });
+				const rendered = document.createElement('div');
+				rendered.className = 'latex-code-rendered latex-rendered';
+				rendered.dataset.latexOriginal = formula;
+				safeSetHTML(rendered, html);
+				// 保留标题栏，替换代码内容区域
+				codeBody.dataset.latexCodeOriginalDisplay = codeBody.style.display || '';
+				codeBody.style.display = 'none';
+				codeBody.parentNode.insertBefore(rendered, codeBody.nextSibling);
+				pre.dataset.latexCodeProcessed = 'true';
+			} catch (e) { /* ignore render errors */ }
+		});
+	}
+	function scanAndRenderLatex(panelEl) {
+		if (!currentSettings.latexEnabled || !katexLoaded) return;
+		const scope = panelEl || document.querySelector('.antigravity-agent-side-panel');
+		if (!scope) return;
+		// 1. 处理正文中的内联/块级 LaTeX
+		// v0.2.2-patch: 扩展选择器，增加更多容器和元素类型
+		const proseSelectors = [
+			'.leading-relaxed.select-text:not(.opacity-70)',  // 原始选择器
+			'.select-text.leading-relaxed:not(.opacity-70)',  // 备选顺序
+			'[class*="leading-relaxed"][class*="select-text"]:not([class*="opacity"])', // 模糊匹配
+		];
+		const proseSet = new Set();
+		proseSelectors.forEach(sel => {
+			try { scope.querySelectorAll(sel).forEach(e => proseSet.add(e)); } catch(e) {}
+		});
+		// v0.2.2-patch: 扩展子元素选择器，增加 td, th, h1-h6 等
+		const elemSelector = 'p, li, td, th, h1, h2, h3, h4, h5, h6';
+		proseSet.forEach(prose => {
+			const elems = prose.querySelectorAll(elemSelector);
+			elems.forEach(elem => { processLatexInElement(elem); });
+		});
+		// v0.2.2-patch: 如果没有通过选择器找到容器，尝试直接处理 scope 内的所有目标元素
+		if (proseSet.size === 0) {
+			console.log('[AB] ⚠️ LaTeX: 未找到 prose 容器，尝试直接搜索 scope 内元素');
+			scope.querySelectorAll(elemSelector).forEach(elem => {
+				if (elem.closest('#ab-overlay') || elem.closest('#ab-modal')) return;
+				processLatexInElement(elem);
+			});
+		}
+		// 2. 处理 latex 代码块
+		processLatexCodeBlocks(scope);
+	}
+	function revertLatex(panelEl) {
+		const scope = panelEl || document.querySelector('.antigravity-agent-side-panel');
+		if (!scope) return;
+		// 回退内联/块级公式
+		scope.querySelectorAll('.latex-rendered:not(.latex-code-rendered)').forEach(e => {
+			const orig = e.dataset.latexOriginal;
+			if (!orig) return;
+			const origTag = e.dataset.latexOriginalTag;
+			if (origTag) {
+				// 整段替换回原始元素
+				const restored = document.createElement(origTag);
+				restored.textContent = orig;
+				e.parentNode.replaceChild(restored, e);
+			} else {
+				e.parentNode.replaceChild(document.createTextNode(orig), e);
+			}
+		});
+		// 回退 latex 代码块
+		scope.querySelectorAll('.latex-code-rendered').forEach(e => {
+			const codeBody = e.previousElementSibling;
+			if (codeBody && codeBody.dataset.latexCodeOriginalDisplay !== undefined) {
+				codeBody.style.display = codeBody.dataset.latexCodeOriginalDisplay || '';
+				delete codeBody.dataset.latexCodeOriginalDisplay;
+			}
+			e.remove();
+		});
+		scope.querySelectorAll('[data-latex-processed]').forEach(e => delete e.dataset.latexProcessed);
+		scope.querySelectorAll('[data-latex-code-processed]').forEach(e => delete e.dataset.latexCodeProcessed);
+	}
+	async function applyLatexSettings(panelEl) {
+		if (latexObserver) { latexObserver.disconnect(); latexObserver = null; }
+		if (!currentSettings.latexEnabled) { revertLatex(panelEl); return; }
+		try {
+			await loadKaTeX();
+			const scope = panelEl || document.querySelector('.antigravity-agent-side-panel');
+			if (scope) { latexObserver = new MutationObserver(() => { clearTimeout(window._abLTTimer); window._abLTTimer = setTimeout(() => scanAndRenderLatex(panelEl), 300); }); latexObserver.observe(scope, { childList: true, subtree: true }); }
+			scanAndRenderLatex(panelEl);
+		} catch (e) { console.warn('[AB] LaTeX init failed:', e.message); }
+	}
+
+	// ===== 历史记录项目管理功能 =====
+	let historyObserver = null;
+	function getCurrentWorkspaceName() {
+		const title = document.title || '';
+		if (title.includes('-')) {
+			const parts = title.split('-').map(p => p.trim());
+			for (let i = parts.length - 2; i >= 0; i--) {
+				const p = parts[i];
+				if (p && !/^(Visual Studio Code|Antigravity|Workbench|Extension|Untitled)/i.test(p) && !p.includes('.html') && !p.includes('.vue') && !p.includes('.js') && !p.includes('.py') && !p.includes('.java')) {
+					return p;
+				}
+			}
+			if (parts.length >= 2) return parts[parts.length - 2];
+		}
+		return 'Current Workspace';
+	}
+
+	function trackActiveConversation(scope) {
+		const ws = getCurrentWorkspaceName();
+		const titleEl = scope.querySelector('.font-sans.text-base, header span, [class*="title"]');
+		if (titleEl && titleEl.textContent) {
+			const titleText = titleEl.textContent.trim();
+			if (titleText && titleText.length < 100 && !currentSettings.historyProjectMap[titleText]) {
+				currentSettings.historyProjectMap[titleText] = ws;
+				saveSettings(currentSettings);
+			}
+		}
+	}
+
+	function filterQuickConvosMenu() {
+		if (!currentSettings.historyFilterEnabled) return;
+		const searchInput = document.querySelector('input[placeholder*="Search all convos"], input[placeholder*="Search"]');
+		if (!searchInput) return;
+
+		const menuWidget = searchInput.closest('.quick-input-widget, [class*="quick-input"], [class*="quick-open"], div');
+		if (!menuWidget) return;
+
+		const currentWs = getCurrentWorkspaceName().toLowerCase();
+
+		const rows = menuWidget.querySelectorAll('[role="option"], .monaco-list-row, [class*="list-row"]');
+		rows.forEach(row => {
+			if (row.contains(searchInput)) return;
+			const text = (row.textContent || '').trim();
+			if (!text || text.includes('Search all convos')) return;
+
+			// 从节点文本中匹配原生项目路径，如 "project/mShang"
+			const projectMatch = text.match(/(?:project|workspace)\/([a-zA-Z0-9_\-\u4e00-\u9fa5]+)/i);
+			let itemWs = '';
+			if (projectMatch && projectMatch[1]) {
+				itemWs = projectMatch[1].toLowerCase();
+			} else {
+				const firstLine = text.split('\n')[0].trim();
+				itemWs = (currentSettings.historyProjectMap[firstLine] || '').toLowerCase();
+			}
+
+			if (itemWs) {
+				if (currentSettings.historyOnlyCurrentWorkspace) {
+					const isCurrent = currentWs.includes(itemWs) || itemWs.includes(currentWs);
+					if (isCurrent) {
+						row.classList.remove('ab-hidden-row');
+					} else {
+						row.classList.add('ab-hidden-row');
+					}
+				} else {
+					row.classList.remove('ab-hidden-row');
+				}
+
+				const existingTag = row.querySelector('.ab-project-tag');
+				if (currentSettings.historyShowProjectTag) {
+					if (!existingTag) {
+						const tag = document.createElement('span');
+						tag.className = 'ab-project-tag';
+						tag.textContent = itemWs;
+						tag.style.marginRight = '8px';
+						row.appendChild(tag);
+					}
+				} else if (existingTag) {
+					existingTag.remove();
+				}
+			}
+		});
+	}
+
+	function injectHistoryProjectTags(panelEl) {
+		if (!currentSettings.historyFilterEnabled) return;
+		const scope = panelEl || document.querySelector('.antigravity-agent-side-panel');
+		if (!scope) return;
+		const currentWs = getCurrentWorkspaceName();
+		trackActiveConversation(scope);
+
+		// 匹配侧边栏内部历史记录项
+		const historyItems = scope.querySelectorAll('button[title].grow, [role="button"][title], .history-item');
+		historyItems.forEach(item => {
+			const title = (item.title || item.textContent || '').trim();
+			if (!title || title.length > 100) return;
+
+			if (!currentSettings.historyProjectMap[title]) {
+				currentSettings.historyProjectMap[title] = currentWs;
+				saveSettings(currentSettings);
+			}
+			const itemWs = currentSettings.historyProjectMap[title] || currentWs;
+
+			if (currentSettings.historyOnlyCurrentWorkspace) {
+				if (itemWs !== currentWs) {
+					item.classList.add('ab-hidden-row');
+				} else {
+					item.classList.remove('ab-hidden-row');
+				}
+			} else {
+				item.classList.remove('ab-hidden-row');
+			}
+
+			const existingTag = item.querySelector('.ab-project-tag');
+			if (currentSettings.historyShowProjectTag) {
+				if (!existingTag) {
+					const tag = document.createElement('span');
+					tag.className = 'ab-project-tag';
+					tag.textContent = itemWs;
+					item.appendChild(tag);
+				}
+			} else if (existingTag) {
+				existingTag.remove();
+			}
+		});
+
+		filterQuickConvosMenu();
+	}
+
+	function applyHistoryFilterSettings(panelEl) {
+		if (historyObserver) { historyObserver.disconnect(); historyObserver = null; }
+		if (!currentSettings.historyFilterEnabled) {
+			const scope = panelEl || document.querySelector('.antigravity-agent-side-panel');
+			if (scope) {
+				scope.querySelectorAll('.ab-project-tag').forEach(t => t.remove());
+				scope.querySelectorAll('.ab-hidden-row').forEach(i => i.classList.remove('ab-hidden-row'));
+			}
+			document.querySelectorAll('.ab-project-tag').forEach(t => t.remove());
+			document.querySelectorAll('.ab-hidden-row').forEach(r => r.classList.remove('ab-hidden-row'));
+			return;
+		}
+		
+		historyObserver = new MutationObserver(() => {
+			clearTimeout(window._abHTTimer);
+			window._abHTTimer = setTimeout(() => {
+				injectHistoryProjectTags(panelEl);
+				filterQuickConvosMenu();
+			}, 150);
+		});
+		
+		historyObserver.observe(document.body, { childList: true, subtree: true });
+		injectHistoryProjectTags(panelEl);
+		filterQuickConvosMenu();
+	}
+
+	// ===== 版本检测 =====
+	const GITHUB_API = 'https://api.github.com/repos/016/Antigravity-Better/releases/latest';
+	const GITHUB_RELEASES = 'https://github.com/016/Antigravity-Better/releases';
+	const FALLBACK_API = 'https://hub.lib00.com/api/v1/antigravity-better/version';
+	function isNewerVersion(remote, local) {
+		const r = remote.replace(/^v/i, '').split('.').map(Number);
+		const l = local.replace(/^v/i, '').split('.').map(Number);
+		for (let i = 0; i < Math.max(r.length, l.length); i++) { if ((r[i]||0) > (l[i]||0)) return true; if ((r[i]||0) < (l[i]||0)) return false; }
+		return false;
+	}
+	async function checkForUpdate() {
+		// 优先使用 GitHub API
+		try {
+			const resp = await fetch(GITHUB_API, { cache: 'no-store' });
+			if (resp.ok) {
+				const json = await resp.json();
+				const ver = (json.tag_name || '').replace(/^v/i, '');
+				if (ver && isNewerVersion(ver, APP_VERSION)) return { status: 'found', remoteVersion: ver };
+				return { status: 'latest' };
+			}
+		} catch (e) { /* GitHub API 失败，尝试备用 */ }
+		// 备用 API
+		try {
+			const resp = await fetch(FALLBACK_API, { cache: 'no-store' }); if (!resp.ok) return { status: 'error' };
+			const json = await resp.json(); const data = json.data || json;
+			const ver = (data.version || '').replace(/^v/i, '');
+			if (ver && isNewerVersion(ver, APP_VERSION)) return { status: 'found', remoteVersion: ver };
+			return { status: 'latest' };
+		} catch (e) { return { status: 'error' }; }
+	}
+
+	// ===== 生命周期 =====
+	function onPanelReady(panelEl) {
+		console.log('[AB] ✅ AI 面板已检测到');
+		createSettingsUI(panelEl);
+		applyColorSettings(); applyFontsizeSettings();
+		applyCopySettings(panelEl); applyHotkeySettings();
+		applyAutoAcceptSettings(panelEl);
+		applyHistoryFilterSettings(panelEl);
+		if (currentSettings.latexEnabled) applyLatexSettings(panelEl);
+		if (currentSettings.autoUpdateEnabled) setTimeout(checkForUpdate, 10000);
+	}
+	function waitForAgentPanel() {
+		const p = document.querySelector('.antigravity-agent-side-panel');
+		if (p) { onPanelReady(p); return; }
+		const obs = new MutationObserver((_, o) => { const p = document.querySelector('.antigravity-agent-side-panel'); if (p) { o.disconnect(); onPanelReady(p); } });
+		obs.observe(document.body, { childList: true, subtree: true });
+		console.log('[AB] ⏳ 等待 AI 面板出现...');
+	}
+	// ===== 自动关闭"安装损坏"通知 =====
+	function dismissCorruptWarning() {
+		if (!currentSettings.dismissCorruptEnabled) return;
+		const keywords = ['损坏', '重新安装', 'corrupt', 'reinstall'];
+		function tryDismiss() {
+			document.querySelectorAll('.notification-toast, .notifications-toasts .notification-list-item').forEach(toast => {
+				const text = (toast.textContent || '').toLowerCase();
+				if (keywords.some(k => text.includes(k))) {
+					const closeBtn = toast.querySelector('.codicon-notifications-clear, .codicon-close, .action-label[title*="Close"], .action-label[title*="关闭"], .clear-notification-action');
+					if (closeBtn) { closeBtn.click(); console.log('[AB] ✅ 已自动关闭安装损坏通知'); }
+					else { toast.style.display = 'none'; console.log('[AB] ✅ 已隐藏安装损坏通知'); }
+				}
+			});
+		}
+		// 通知可能延迟出现，持续监听 30 秒
+		const obs = new MutationObserver(() => tryDismiss());
+		obs.observe(document.body, { childList: true, subtree: true });
+		setTimeout(() => obs.disconnect(), 30000);
+		setTimeout(tryDismiss, 2000);
+	}
+
+	function init() {
+		console.log('[AB] 开始初始化...');
+		try { applyColorSettings(); applyFontsizeSettings(); waitForAgentPanel(); dismissCorruptWarning(); console.log('[AB] ✅ 初始化完成'); } catch (e) { console.error('[AB] ❌ 初始化失败:', e); }
+	}
+	if (document.body) { setTimeout(init, 1000); } else { document.addEventListener('DOMContentLoaded', () => setTimeout(init, 1000)); }
+})();
+</script>
+
+</html>
